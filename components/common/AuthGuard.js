@@ -1,16 +1,29 @@
 'use client';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function AuthGuard({ children }) {
-  const { status } = useSession();
+  const { status, data: session } = useSession();
   const router = useRouter();
 
-  if (status === 'loading') return <div>Loading...</div>;
-  if (status === 'unauthenticated') {
-    router.push('/auth/login');
-    return null;
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/auth/login');
+    }
+    
+    if (status === 'authenticated' && session?.user?.role !== 'admin') {
+      router.push('/');
+    }
+  }, [status, session, router]);
+
+  if (status === 'loading') {
+    return <div className="p-4">Loading session...</div>;
   }
 
-  return children;
+  if (status === 'authenticated' && session?.user?.role === 'admin') {
+    return children;
+  }
+
+  return null;
 }

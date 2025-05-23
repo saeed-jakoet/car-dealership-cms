@@ -7,20 +7,35 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const result = await signIn('credentials', {
-      redirect: false,
-      email,
-      password
-    });
+    setError('');
+    setIsLoading(true);
 
-    if (result?.error) {
-      setError(result.error);
-    } else {
-      router.push('/admin');
+    try {
+      const result = await signIn('credentials', {
+        redirect: false,
+        email: email.trim(),
+        password: password.trim()
+      });
+
+      if (result?.error) {
+        throw new Error(result.error);
+      }
+
+      // Force refresh to ensure session is updated
+      window.location.href = '/admin';
+      
+    } catch (error) {
+      setError(
+        error.message === 'CredentialsSignin' 
+          ? 'Invalid email or password' 
+          : 'An error occurred. Please try again.'
+      );
+      setIsLoading(false);
     }
   };
 
@@ -29,9 +44,13 @@ export default function LoginPage() {
       <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">
         <div>
           <h2 className="text-center text-3xl font-bold text-gray-900">
-            Dealership Admin Login
+            Dealership Admin Portal
           </h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Secure administrator login
+          </p>
         </div>
+        
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
@@ -44,6 +63,7 @@ export default function LoginPage() {
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
               />
             </div>
             <div>
@@ -56,17 +76,31 @@ export default function LoginPage() {
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
               />
             </div>
           </div>
-          {error && <p className="text-red-500 text-sm">{error}</p>}
+
+          {error && (
+            <p className="text-red-500 text-sm text-center">{error}</p>
+          )}
+
           <button
             type="submit"
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+            disabled={isLoading}
+            className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
+              isLoading 
+                ? 'bg-gray-400 cursor-not-allowed' 
+                : 'bg-blue-600 hover:bg-blue-700'
+            }`}
           >
-            Sign in
+            {isLoading ? 'Authenticating...' : 'Sign in'}
           </button>
         </form>
+
+        <div className="mt-4 text-center text-sm text-gray-600">
+          <p>All logins are securely encrypted</p>
+        </div>
       </div>
     </div>
   );

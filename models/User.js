@@ -8,12 +8,12 @@ const userSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
-// Remove the static method and keep only the pre-save hook
-userSchema.pre('save', async function (next) {
+userSchema.pre('save', async function(next) {
   if (this.isModified('password')) {
     this.password = await bcrypt.hash(this.password, 10);
   }
   next();
+// Remove the static method and keep only the pre-save hook
 });
 
 export default mongoose.models.User || mongoose.model('User', userSchema);
