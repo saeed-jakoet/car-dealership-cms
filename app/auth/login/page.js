@@ -15,28 +15,12 @@ export default function LoginPage() {
     setError('');
     setIsLoading(true);
 
-    try {
-      const result = await signIn('credentials', {
-        redirect: false,
-        email: email.trim(),
-        password: password.trim()
-      });
 
-      if (result?.error) {
-        throw new Error(result.error);
-      }
 
       // Force refresh to ensure session is updated
       window.location.href = '/admin';
       
-    } catch (error) {
-      setError(
-        error.message === 'CredentialsSignin' 
-          ? 'Invalid email or password' 
-          : 'An error occurred. Please try again.'
-      );
-      setIsLoading(false);
-    }
+
   };
 
   return (
