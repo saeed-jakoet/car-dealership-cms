@@ -1,98 +1,123 @@
 'use client';
-import { useState } from 'react';
-import { FiEdit, FiTrash } from 'react-icons/fi';
+import axios from 'axios';
+import { useState, useEffect } from 'react';
+import { FiEdit, FiTrash, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 
-// Initial mock data
-const initialCars = [
-  {
-    _id: '1',
-    title: 'Toyota Corolla',
-    price: 250000,
-    year: 2022,
-    make: 'Toyota',
-    model: 'Corolla',
-    mileage: 15000,
-    images: ['/car-placeholder.jpg'],
-    features: ['Bluetooth', 'Backup Camera']
-  },
-  {
-    _id: '2',
-    title: 'VW Golf GTI',
-    price: 350000,
-    year: 2021,
-    make: 'Volkswagen',
-    model: 'Golf GTI',
-    mileage: 25000,
-    images: ['/car-placeholder.jpg'],
-    features: ['Turbocharged', 'Heated Seats']
-  },
-];
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export default function AdminCarsTable() {
-  const [cars, setCars] = useState(initialCars);
-  const [currentCars, setCurrentCars] = useState(initialCars);
+export default function AdminCarsCards() {
+    const [cars, setCars] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [expandedCard, setExpandedCard] = useState(null); // track expanded card
 
-  const handleDelete = (id) => {
-    if (confirm('Are you sure you want to delete this car?')) {
-      setCurrentCars(currentCars.filter(car => car._id !== id));
-    }
-  };
+    useEffect(() => {
+        axios
+            .get(`${BASE_URL}/vehicles/all`)
+            .then(res => {
+                console.log('API response:', res);
+                setCars(res.data.data || []);
+            })
+            .catch(err => {
+                console.error('Error fetching vehicles:', err);
+            })
+            .finally(() => setIsLoading(false));
+    }, []);
 
-  return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Model</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Year</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {currentCars.map((car) => (
-            <tr key={car._id}>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="flex items-center">
-                  {car.images?.[0] && (
-                    <img
-                      src={car.images[0]}
-                      alt={car.title}
-                      className="h-12 w-16 object-cover rounded mr-4"
-                    />
-                  )}
-                  <div>
-                    <div className="font-medium text-gray-900">{car.title}</div>
-                    <div className="text-sm text-gray-500">{car.make}</div>
-                  </div>
+    const handleDelete = id => {
+        if (confirm('Are you sure you want to delete this car?')) {
+            setCars(cars.filter(car => car._id !== id));
+        }
+    };
+
+    const toggleExpand = id => {
+        setExpandedCard(prev => (prev === id ? null : id));
+    };
+
+    if (isLoading) return <div>Loading...</div>;
+
+    return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {cars.map(car => (
+                <div
+                    key={car._id}
+                    className="bg-white rounded-2xl shadow-md overflow-hidden border hover:shadow-lg transition-all duration-300"
+                >
+                    <div className="w-full h-48 bg-gray-200 overflow-hidden">
+                        <img
+                            src={car.imageUrl || ''}
+                            alt={car.name}
+                            className="w-full h-full object-cover"
+                        />
+                    </div>
+
+                    <div className="p-4 space-y-2">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <h2 className="text-lg font-semibold text-gray-900">{car.name}</h2>
+                                <p className="text-sm text-gray-500">{car.brand} • {car.transmissionType}</p>
+                            </div>
+                            <span
+                                className={`${
+                                    car.used
+                                        ? 'bg-orange-100 text-orange-800'
+                                        : 'bg-green-100 text-green-800'
+                                } text-xs font-medium px-2 py-1 rounded-full`}
+                            >
+  {car.used ? 'Used' : 'New'}
+</span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 text-sm text-gray-700">
+                            <div><span className="font-medium">Price:</span> R {car.price}</div>
+                            <div><span className="font-medium">Fuel:</span> {car.fuelType}</div>
+                            <div><span className="font-medium">Mileage:</span> {car.mileage}</div>
+                            <div><span className="font-medium">Colour:</span> {car.vehicleDetails?.colour}</div>
+                        </div>
+
+                        <button
+                            onClick={() => toggleExpand(car._id)}
+                            className="flex items-center text-sm text-blue-600 mt-2 hover:underline"
+                        >
+                            {expandedCard === car._id ? (
+                                <>
+                                    <FiChevronUp className="mr-1" /> Show Less
+                                </>
+                            ) : (
+                                <>
+                                    <FiChevronDown className="mr-1" /> Show More
+                                </>
+                            )}
+                        </button>
+
+                        {expandedCard === car._id && (
+                            <div className="mt-2 text-sm text-gray-700 space-y-1 border-t pt-2">
+                                <div><span className="font-medium">Body Type:</span> {car.vehicleDetails?.bodyType}</div>
+                                <div><span className="font-medium">Previous Owners:</span> {car.vehicleDetails?.previousOwners}</div>
+                                <div><span className="font-medium">Service History:</span> {car.vehicleDetails?.serviceHistory}</div>
+                                <div><span className="font-medium">Warranty:</span> {car.vehicleDetails?.warranty}</div>
+                                <div><span className="font-medium">Extras:</span> {car.extras.length ? car.extras.join(', ') : 'None'}</div>
+                                <div><span className="font-medium">Seller Comments:</span> {car.sellerComments}</div>
+                                <div><span className="font-medium">Created At:</span> {new Date(car.createdAt).toLocaleDateString()}</div>
+                            </div>
+                        )}
+
+                        <div className="flex justify-end space-x-4 pt-4 border-t mt-4">
+                            <button
+                                className="text-blue-600 hover:text-blue-800"
+                                onClick={() => console.log('Edit:', car._id)}
+                            >
+                                <FiEdit size={18} />
+                            </button>
+                            <button
+                                className="text-red-600 hover:text-red-800"
+                                onClick={() => handleDelete(car._id)}
+                            >
+                                <FiTrash size={18} />
+                            </button>
+                        </div>
+                    </div>
                 </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">R {car.price.toLocaleString()}</td>
-              <td className="px-6 py-4 whitespace-nowrap">{car.year}</td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                  Active
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap space-x-4">
-                <button
-                  className="text-blue-600 hover:text-blue-900"
-                  onClick={() => console.log('Edit:', car._id)} // Add edit logic
-                >
-                  <FiEdit className="inline-block" />
-                </button>
-                <button
-                  onClick={() => handleDelete(car._id)}
-                  className="text-red-600 hover:text-red-900"
-                >
-                  <FiTrash className="inline-block" />
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
+            ))}
+        </div>
+    );
 }

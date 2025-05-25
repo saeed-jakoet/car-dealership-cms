@@ -1,7 +1,11 @@
 'use client';
-import { signIn } from 'next-auth/react';
+
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import Cookies from 'js-cookie';
+import axios from 'axios';
+
+const BASEURL = process.env.NEXT_PUBLIC_API_URL
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -15,13 +19,23 @@ export default function LoginPage() {
     setError('');
     setIsLoading(true);
 
-
-
-      // Force refresh to ensure session is updated
-      window.location.href = '/admin';
-      
-
-  };
+    try {
+      const response = await axios.post(`${BASEURL}/auth/login`, {email, password});
+      console.log('Login response:', response);
+      const token = response.data.data.accessToken;
+      Cookies.set('accessToken', token);
+      router.push('/admin');
+    } catch (err) {
+      console.error('Login error:', err);
+      if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else {
+        setError('An unexpected error occurred');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
