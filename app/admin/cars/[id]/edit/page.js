@@ -53,34 +53,49 @@ export default function EditCarPage() {
     setValue('sellerComments', carData.sellerComments);
   };
 
-  const onSubmit = async (data) => {
-    setIsSubmitting(true);
-    try {
-      const formattedData = {
-        ...data,
-        price: Number(data.price),
-        year: Number(data.year),
-        mileage: Number(data.mileage),
+const onSubmit = async (data) => {
+  setIsSubmitting(true);
+  try {
+    // Format the data to match your API expectations
+    const formattedData = {
+      ...data,
+      price: Number(data.price),
+      year: Number(data.year),
+      mileage: Number(data.mileage),
+      previousOwners: Number(data.previousOwners),
+      extras: data.extras.split(',').map(e => e.trim()),
+      vehicleDetails: {
+        colour: data.colour,
+        bodyType: data.bodyType,
         previousOwners: Number(data.previousOwners),
-        extras: data.extras.split(',').map(e => e.trim()),
-        vehicleDetails: {
-          colour: data.colour,
-          bodyType: data.bodyType,
-          previousOwners: Number(data.previousOwners),
-          serviceHistory: data.serviceHistory,
-          warranty: data.warranty
-        }
-      };
+        serviceHistory: data.serviceHistory,
+        warranty: data.warranty
+      }
+    };
 
-      await axios.put(`${BASE_URL}/vehicles/${id}`, formattedData);
-      router.push(`/admin/cars/${id}`);
-    } catch (err) {
-      console.error('Update failed:', err);
-      setError('Failed to update vehicle');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    // Call your API endpoint
+    const response = await axios.put(
+      `${BASE_URL}/vehicles/edit/${id}`,
+      formattedData,
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+if (response.data.success) {
+  router.push(`/admin/cars/${id}`);
+} else {
+  setError(response.data.message || 'Update failed');
+}
+  } catch (err) {
+    console.error('Update failed:', err);
+    setError('Failed to update vehicle');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const handleDelete = async () => {
     if (confirm('Are you sure you want to delete this vehicle?')) {
