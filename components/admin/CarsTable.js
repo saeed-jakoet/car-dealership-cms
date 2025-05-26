@@ -40,6 +40,32 @@ export default function AdminCarsCards() {
     }
   };
 
+      const handleToggleVisible = async (id) => {
+        const car = cars.find((c) => c._id === id);
+        if (!car) return;
+
+        const newVisible = !car.visible;
+
+        setCars((prev) =>
+            prev.map((c) =>
+                c._id === id ? { ...c, visible: newVisible } : c
+            )
+        );
+
+        try {
+            await axios.put(`${BASE_URL}/vehicles/visible/${id}`, { visible: newVisible });
+            toast.success(`Car is now ${newVisible ? 'visible' : 'hidden'} 🎉`);
+        } catch (err) {
+            toast.error('Failed to update visibility ❌');
+
+            setCars((prev) =>
+                prev.map((c) =>
+                    c._id === id ? { ...c, visible: car.visible } : c
+                )
+            );
+        }
+    };
+
   if (isLoading)
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -108,20 +134,13 @@ export default function AdminCarsCards() {
                 </div>
     
                 <div className="flex justify-end gap-3 mt-4">
-                  <button
-                    className="text-blue-600 hover:text-blue-800"
-                    onClick={() =>
-                      alert(`Edit feature not implemented for ${car.name}`)
-                    }
-                  >
-                    <FiEdit />
-                  </button>
-                  <button
-                    className="text-red-600 hover:text-red-800"
-                    onClick={() => handleDelete(car._id)}
-                  >
-                    <FiTrash />
-                  </button>
+                                        <button
+                          className={`pointer-events-auto text-gray-600 hover:text-gray-800 cursor-pointer${!car.visible ? ' opacity-50' : ''}`}
+                          title={car.visible ? "Visible" : "Hidden"}
+                          onClick={() => handleToggleVisible(car._id)}
+                      >
+                          {car.visible ? <FiEye /> : <FiEyeOff />}
+                      </button>
                 </div>
               </div>
             </div>

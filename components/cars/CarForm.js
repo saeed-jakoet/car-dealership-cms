@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import axios from "axios";
+import Cookies from "js-cookie";
 
 const BASEURL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -174,7 +175,7 @@ export default function CarForm() {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem("accessToken"); // or however you're storing it
+      const token = Cookies.get("accessToken"); // Get token from cookies
 
       if (!token) {
         alert("You must be logged in to post a vehicle.");
@@ -215,7 +216,11 @@ export default function CarForm() {
       form.append("folder", formData.name);
 
       const res = await axios.post(`${BASEURL}/vehicles/new`, form, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`, // Pass token in header
+        },
+        withCredentials: true, // In case your API expects cookies too
       });
 
       setSuccessMsg("Vehicle added successfully!");
