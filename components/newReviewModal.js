@@ -36,7 +36,7 @@ export default function NewReviewModal({ isOpen, onClose }) {
 
             const response = await axios.post(`${BASE_URL}/reviews/new`, reviewData);
 
-            if (response.status === 201) {
+            if (response.status === 200) {
                 toast.success("Review submitted!");
                 onClose(); // Close modal
                 router.refresh(); // Optional: Refresh reviews table
@@ -188,13 +188,23 @@ export default function NewReviewModal({ isOpen, onClose }) {
                                     )}
                                 </div>
 
-                                {/* Submit */}
+                                {/* Loader or Submit Button */}
                                 <button
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                    className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center"
                                 >
-                                    {isSubmitting ? "Submitting..." : "Submit Review"}
+                                    {isSubmitting ? (
+                                        <>
+                                            <svg className="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                            </svg>
+                                            Submitting...
+                                        </>
+                                    ) : (
+                                        "Submit Review"
+                                    )}
                                 </button>
                             </form>
                         </Dialog.Panel>
