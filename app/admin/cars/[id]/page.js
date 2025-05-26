@@ -6,6 +6,8 @@ import axios from 'axios';
 import { FiArrowLeft, FiEdit, FiTrash2 } from 'react-icons/fi';
 import ImageSlider from '@/components/ImageSlider'; // Adjust the import path as necessary
 import Link from 'next/link';
+import Cookies from 'js-cookie'; // <-- Add this import
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function CarDetailPage() {
@@ -15,14 +17,17 @@ export default function CarDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
-  
-
   useEffect(() => {
     const fetchCar = async () => {
       try {
-        const response = await axios.get(`${BASE_URL}/vehicles/${id}`);
+        const token = Cookies.get("accessToken"); // Get token from cookies
+        if (!token) throw new Error("No access token found");
+        const response = await axios.get(`${BASE_URL}/vehicles/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        });
         const vehicleData = response.data.data;
-        
+
         // Combine imageUrl and imageUrls into a single array
         const images = [
           vehicleData.imageUrl,
@@ -38,14 +43,22 @@ export default function CarDetailPage() {
         setIsLoading(false);
       }
     };
-    
+
     fetchCar();
   }, [id]);
 
   const handleDelete = async () => {
     if (confirm('Are you sure you want to delete this vehicle?')) {
       try {
-        await axios.delete(`${BASE_URL}/vehicles/${id}`);
+        const token = Cookies.get("accessToken"); // Get token from cookies
+        if (!token) {
+          alert("You must be logged in to delete a vehicle.");
+          return;
+        }
+        await axios.delete(`${BASE_URL}/vehicles/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        });
         router.push('/admin/cars');
       } catch (err) {
         console.error('Delete failed:', err);

@@ -18,7 +18,6 @@ export default function AdminSidebar() {
     const navItems = [
         { href: '/admin', icon: <FiHome />, text: 'Dashboard' },
         { href: '/admin/inbox', icon: <FiInbox />, text: 'Inbox' },
-        { href: '/admin/cars', icon: <FiPlus />, text: 'Manage Listings' },
         { href: '/admin/reviews', icon: <FiStar />, text: 'Manage Reviews' },
         { href: '/admin/settings', icon: <FiSettings />, text: 'Settings' },
     ];

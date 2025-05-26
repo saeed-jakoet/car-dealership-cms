@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/Button';
 import { getCars } from '@/actions/carActions';
 
 export default async function AdminCarsPage() {
-  const token = await cookies().get('accessToken');
+    const cookieStore = await cookies();
+    const token = cookieStore.get('accessToken');
 
   if (!token) {
     
@@ -26,7 +27,7 @@ export default async function AdminCarsPage() {
         </Link>
       </div>
 
-      <AdminCarsTable cars={cars} />
+      <AdminCarsTable token={token.value} />
     </div>
   );
 }

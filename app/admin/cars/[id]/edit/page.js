@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
 import { useForm } from "react-hook-form";
 import { FiSave, FiXCircle, FiTrash2, FiUploadCloud } from "react-icons/fi";
+import Cookies from "js-cookie"; // Add this at the top with your imports
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -78,6 +79,13 @@ export default function EditCarPage() {
         },
       };
 
+      const token = Cookies.get("accessToken"); // Get token from cookies
+      if (!token) {
+        setError("No access token found");
+        setIsSubmitting(false);
+        return;
+      }
+
       // Call your API endpoint
       const response = await axios.put(
         `${BASE_URL}/vehicles/edit/${id}`,
@@ -85,20 +93,19 @@ export default function EditCarPage() {
         {
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
+          withCredentials: true,
         }
       );
 
       if (response.status === 200) {
-        setShowSuccess(true);
-        // Redirect after 2 seconds
-        setTimeout(() => {
-          router.push(`/admin/cars/${id}`);
-        }, 2000);
+        router.push(`/admin/cars/${id}`);
       }
     } catch (err) {
       console.error("Update failed:", err);
-      router.push(`/admin/cars/${id}`)
+      setError("Failed to update vehicle");
+      router.push(`/admin/cars/${id}`);
     } finally {
       setIsSubmitting(false);
     }
