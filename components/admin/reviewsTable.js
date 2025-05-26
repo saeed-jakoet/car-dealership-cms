@@ -1,31 +1,21 @@
-"use client";
-
-import axios from "axios";
-import { useState, useEffect } from "react";
-import { toast } from "react-hot-toast";
+import useSWR, { mutate } from 'swr';
+import axios from 'axios';
+import { toast } from 'react-hot-toast';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const REVIEWS_URL = `${BASE_URL}/reviews/all`;
+
+const fetcher = url => axios.get(url).then(res => res.data.data);
 
 export default function AdminReviews() {
-    const [reviews, setReviews] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const { data: reviews, error, isLoading } = useSWR(
+        REVIEWS_URL,
+        fetcher,
+        { revalidateOnFocus: true }
+    );
 
-    useEffect(() => {
-        const fetchReviews = async () => {
-            setIsLoading(true);
-            try {
-                const res = await axios.get(`${BASE_URL}/reviews/all`);
-                setReviews(res.data.data || []);
-            } catch (err) {
-                console.error("Error fetching reviews:", err);
-                toast.error("Failed to load reviews");
-            } finally {
-                setIsLoading(false);
-            }
-        };
+    const refreshReviews = () => mutate(REVIEWS_URL);
 
-        fetchReviews();
-    }, []);
 
     if (isLoading)
         return (
@@ -34,7 +24,16 @@ export default function AdminReviews() {
             </div>
         );
 
-    if (reviews.length === 0)
+    if (error) {
+        toast.error("Failed to load reviews");
+        return (
+            <div className="min-h-screen flex items-center justify-center text-gray-500 font-semibold">
+                Error loading reviews.
+            </div>
+        );
+    }
+
+    if (!reviews || reviews.length === 0)
         return (
             <div className="min-h-screen flex items-center justify-center text-gray-500 font-semibold">
                 No reviews found.
@@ -49,20 +48,15 @@ export default function AdminReviews() {
                     className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 flex flex-col justify-between hover:shadow-xl transition-all duration-300 group"
                 >
                     <div className="space-y-3">
-                        {/* Header */}
                         <div className="flex items-center justify-between">
                             <h3 className="text-lg font-bold text-gray-900 tracking-tight">
                                 {review.name || "Anonymous"}
                             </h3>
                             <span className="text-xs text-gray-400 group-hover:text-gray-500 transition">
-            {new Date(review.createdAt).toLocaleDateString()}
-          </span>
+                                {new Date(review.createdAt).toLocaleDateString()}
+                            </span>
                         </div>
-
-                        {/* Email */}
                         <p className="text-sm text-gray-500">{review.email || ""}</p>
-
-                        {/* Stars */}
                         <div className="flex items-center space-x-1">
                             {[1, 2, 3, 4, 5].map((i) => (
                                 <svg
@@ -79,8 +73,6 @@ export default function AdminReviews() {
                                 </svg>
                             ))}
                         </div>
-
-                        {/* Comment */}
                         <p className="text-base text-gray-700 leading-relaxed whitespace-pre-wrap border-t border-gray-100 pt-4 mt-2">
                             {review.comment}
                         </p>
@@ -88,6 +80,5 @@ export default function AdminReviews() {
                 </div>
             ))}
         </div>
-
     );
 }

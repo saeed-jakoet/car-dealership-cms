@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { mutate } from 'swr'; // ✅ Add this if not already
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -34,12 +35,18 @@ export default function NewReviewModal({ isOpen, onClose }) {
                 createdAt: new Date().toISOString(),
             };
 
+            // ✅ Optimistically add the review to the UI immediately
+            await mutate(`${BASE_URL}/reviews/all`, (current = []) => [reviewData, ...current], false);
+
+            // ✅ Then send the POST request
             const response = await axios.post(`${BASE_URL}/reviews/new`, reviewData);
 
             if (response.status === 200) {
                 toast.success("Review submitted!");
                 onClose(); // Close modal
-                router.refresh(); // Optional: Refresh reviews table
+
+                // ✅ Revalidate the cache to ensure it's accurate
+               await mutate(`${BASE_URL}/reviews/all`);
             }
         } catch (error) {
             console.error("Submission failed:", error);
