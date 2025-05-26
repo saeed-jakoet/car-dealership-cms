@@ -15,6 +15,8 @@ export default function CarDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
+  
+
   useEffect(() => {
     const fetchCar = async () => {
       try {
