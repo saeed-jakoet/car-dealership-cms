@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/solid";
 import { useForm } from "react-hook-form";
@@ -17,9 +17,18 @@ export default function NewReviewModal({ isOpen, onClose }) {
         register,
         handleSubmit,
         formState: { errors },
+        reset, // <-- get reset from useForm
     } = useForm();
     const [rating, setRating] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Reset form and rating when modal opens
+    useEffect(() => {
+        if (isOpen) {
+            reset();
+            setRating(0);
+        }
+    }, [isOpen, reset]);
 
     const onSubmit = async (data) => {
         if (rating === 0) {
@@ -43,10 +52,13 @@ export default function NewReviewModal({ isOpen, onClose }) {
 
             if (response.status === 200) {
                 toast.success("Review submitted!");
-                onClose(); // Close modal
+                onClose();
+                reset();  // Close modal
 
                 // ✅ Revalidate the cache to ensure it's accurate
                await mutate(`${BASE_URL}/reviews/all`);
+                    // <-- reset form fields
+               setRating(0); // <-- reset rating
             }
         } catch (error) {
             console.error("Submission failed:", error);

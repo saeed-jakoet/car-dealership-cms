@@ -39,7 +39,7 @@ export default function EditCarPage() {
     };
 
     fetchCar();
-  }, [id]);
+  }, [id,]);
 
   const populateForm = (carData) => {
     setValue("name", carData.name);
