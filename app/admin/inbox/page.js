@@ -1,103 +1,41 @@
 "use client";
 import axios from "axios";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { toast } from "react-hot-toast";
+import useSWR from "swr";
+import { useAuthFetcher, useAuthPut } from "@/utils/useAuthFetcher";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-const useDummyData = true; // Set to false for real API integration
+const useDummyData = false; // Set to false for real API integration
 
 export default function InboxPage() {
-  const [requests, setRequests] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState(null);
 
-  const markAsRead = (requestId) => {
-    if (useDummyData) {
-      setRequests((prev) =>
-        prev.map((req) =>
-          req._id === requestId ? { ...req, isRead: true } : req
-        )
-      );
+  const fetcher = useAuthFetcher();
+  const authPut = useAuthPut();
 
-      // Also update selected request if it's the one being marked
+  const { data: requests, error, isLoading } = useSWR("/inbox/all", fetcher);
+
+  console.log("Inbox requests:", requests);
+
+const markAsRead = (requestId) => {
+  authPut(`/inbox/read/${requestId}`, { status: true })
+    .then(() => {
+      toast.success("Marked as read");
+
+      // Update the selected request locally if it's the one being marked
       if (selectedRequest && selectedRequest._id === requestId) {
-        setSelectedRequest((prev) => ({ ...prev, isRead: true }));
+        setSelectedRequest((prev) => ({ ...prev, status: true }));
       }
-      toast.success("Marked as read (demo)");
-    } else {
-      axios
-        .patch(`${BASE_URL}/inbox/${requestId}`, { isRead: true })
-        .then(() => {
-          setRequests((prev) =>
-            prev.map((req) =>
-              req._id === requestId ? { ...req, isRead: true } : req
-            )
-          );
-
-          if (selectedRequest && selectedRequest._id === requestId) {
-            setSelectedRequest((prev) => ({ ...prev, isRead: true }));
-          }
-          toast.success("Marked as read");
-        })
-        .catch((err) => {
-          console.error("Error updating status:", err);
-          toast.error("Update failed");
-        });
-    }
-  };
-
-  useEffect(() => {
-    if (useDummyData) {
-      setTimeout(() => {
-        setRequests([
-          {
-            _id: "1",
-            firstName: "John",
-            lastName: "Smith",
-            email: "john@example.com",
-            message: "Looking to sell my 2018 Toyota Corolla with 45,000km",
-            createdAt: new Date().toISOString(),
-            phone: "+27 123 456 789",
-            isRead: false,
-            carDetails: {
-              make: "Toyota",
-              model: "Corolla",
-              year: 2018,
-              mileage: 45000,
-              condition: "Excellent",
-            },
-          },
-          {
-            _id: "2",
-            firstName: "Sarah",
-            lastName: "Johnson",
-            email: "sarahj@example.com",
-            message: "2015 BMW 320i for sale, full service history",
-            createdAt: new Date(Date.now() - 86400000).toISOString(),
-            phone: "+27 987 654 321",
-            isRead: true,
-            carDetails: {
-              make: "BMW",
-              model: "320i",
-              year: 2015,
-              mileage: 120000,
-              condition: "Good",
-            },
-          },
-        ]);
-        setIsLoading(false);
-      }, 1000);
-    } else {
-      axios
-        .get(`${BASE_URL}/inbox`)
-        .then((res) => setRequests(res.data.data || []))
-        .catch((err) => {
-          console.error("Error fetching requests:", err);
-          toast.error("Failed to load messages");
-        })
-        .finally(() => setIsLoading(false));
-    }
-  }, []);
+      console.log("Marked request as read:", requestId);
+      // Optional: refresh SWR data
+      mutate("/inbox/all");
+    })
+    .catch((err) => {
+      console.error("Error updating status:", err);
+      toast.error("Update failed");
+    });
+};
 
   if (isLoading) {
     return (
@@ -114,50 +52,55 @@ export default function InboxPage() {
       </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {requests.map((request) => (
-          <div
-            key={request._id}
-            className={`bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-6 cursor-pointer ${
-              !request.isRead ? "border-l-4 border-blue-500" : ""
-            }`}
-            onClick={() => {
-              setSelectedRequest(request);
-              if (!request.isRead) {
-                markAsRead(request._id);
-              }
-            }}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {request.firstName} {request.lastName}
-                </h3>
-                <span className="text-sm text-gray-500">
-                  {new Date(request.createdAt).toLocaleDateString()}
-                </span>
+        {Array.isArray(requests) && requests.length > 0 ? (
+          requests.map((request) => (
+            <div
+              key={request._id}
+              className={`bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-6 cursor-pointer ${
+                !request.status ? "border-l-4 border-blue-500" : ""
+              }`}
+              onClick={() => {
+                setSelectedRequest(request);
+                if (!request.status) {
+                  markAsRead(request._id);
+                }
+              }}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {request.firstName} {request.lastName}
+                  </h3>
+                  <span className="text-sm text-gray-500">
+                    {new Date(request.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+
+                {!request.status && (
+                  <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+                    New
+                  </span>
+                )}
               </div>
 
-              {!request.isRead && (
-                <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
-                  New
-                </span>
-              )}
-            </div>
+              <div className="space-y-2 mb-3">
+                <p className="text-gray-600 truncate">
+                  <span className="font-medium">Message:</span>{" "}
+                  {request.message}
+                </p>
+              </div>
 
-            <div className="space-y-2 mb-3">
-              <p className="text-gray-600 truncate">
-                <span className="font-medium">Message:</span> {request.message}
-              </p>
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <p className="text-sm text-gray-600">
+                  <span className="font-medium">Contact:</span> {request.email}
+                  {request.phone && ` • ${request.phone}`}
+                </p>
+              </div>
             </div>
-
-            <div className="mt-4 pt-4 border-t border-gray-100">
-              <p className="text-sm text-gray-600">
-                <span className="font-medium">Contact:</span> {request.email}
-                {request.phone && ` • ${request.phone}`}
-              </p>
-            </div>
-          </div>
-        ))}
+          ))
+        ) : (
+          <p className="text-gray-500 col-span-full">No messages found.</p>
+        )}
       </div>
 
       {/* Detail Modal */}
@@ -189,7 +132,7 @@ export default function InboxPage() {
               <span className="text-sm text-gray-500 mr-4">
                 {new Date(selectedRequest.createdAt).toLocaleString()}
               </span>
-              {!selectedRequest.isRead && (
+              {!selectedRequest.status && (
                 <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
                   New Message
                 </span>
@@ -211,7 +154,7 @@ export default function InboxPage() {
             )}
 
             <div className="mt-8 flex justify-end space-x-4">
-              {!selectedRequest.isRead && (
+              {!selectedRequest.status && (
                 <button
                   onClick={() => markAsRead(selectedRequest._id)}
                   className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
