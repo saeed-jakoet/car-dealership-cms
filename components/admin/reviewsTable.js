@@ -1,21 +1,10 @@
 import useSWR, { mutate } from 'swr';
-import axios from 'axios';
+import {useAuthFetcher} from "@/utils/useAuthFetcher";
 import { toast } from 'react-hot-toast';
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-const REVIEWS_URL = `${BASE_URL}/reviews/all`;
-
-const fetcher = url => axios.get(url).then(res => res.data.data);
-
 export default function AdminReviews() {
-    const { data: reviews, error, isLoading } = useSWR(
-        REVIEWS_URL,
-        fetcher,
-        { revalidateOnFocus: true }
-    );
-
-    const refreshReviews = () => mutate(REVIEWS_URL);
-
+    const fetcher = useAuthFetcher();
+    const { data: reviews, error, isLoading } = useSWR("/reviews/all", fetcher);
 
     if (isLoading)
         return (

@@ -1,5 +1,6 @@
 "use client";
 import axios from "axios";
+import useSWR, { mutate } from 'swr';
 import { useState, useEffect } from "react";
 import {
   FiDroplet,
@@ -11,72 +12,46 @@ import {
 } from "react-icons/fi";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+import { useAuthFetcher, useAuthPut } from "@/utils/useAuthFetcher";
+
 const TOAST_ID = "admin-action";
 
-export default function AdminCarsCards({ token }) {
-  const [cars, setCars] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  console.log("Token in AdminCarsCards:", token);
+export default function AdminCarsCards() {
+  const fetcher = useAuthFetcher();
+  const authPut = useAuthPut();
 
-  useEffect(() => {
-    const fetchCars = async () => {
-      try {
-        const res = await axios.get(`${BASE_URL}/vehicles/all`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setCars(res.data.data || []);
-      } catch (err) {
-        console.error("Error fetching vehicles:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const { data: cars, error, isLoading } = useSWR("/vehicles/all", fetcher);
 
-    fetchCars();
-  }, [token]);
-
-  const handleDelete = (id) => {
-    if (confirm("Are you sure you want to delete this car?")) {
-      axios
-        .delete(`${BASE_URL}/vehicles/${id}`)
-        .then(() => {
-          setCars((prev) => prev.filter((car) => car._id !== id));
-        })
-        .catch((err) => {
-          console.error("Delete failed:", err);
-          alert("Failed to delete vehicle");
-        });
-    }
-  };
 
   const handleToggleVisible = async (id) => {
     const car = cars.find((c) => c._id === id);
     if (!car) return;
 
     const newVisible = !car.visible;
-
-    setCars((prev) =>
-      prev.map((c) => (c._id === id ? { ...c, visible: newVisible } : c))
-    );
-
     try {
-      await axios.put(`${BASE_URL}/vehicles/visible/${id}`, {
-        visible: newVisible,
-      });
-      toast.success(`Car is now ${newVisible ? "visible" : "hidden"} 🎉`, {
-        id: TOAST_ID,
-      });
+      const response = await authPut(`/vehicles/visible/${id}`, { visible: newVisible });
+      console.log("Visibility update response:", response);
+      toast.success(`Car is now ${newVisible ? "visible" : "hidden"} 🎉`, { id: TOAST_ID });
+      mutate("/vehicles/all");
     } catch (err) {
+      console.log(err);
       toast.error("Failed to update visibility ❌", { id: TOAST_ID });
-
-      setCars((prev) =>
-        prev.map((c) => (c._id === id ? { ...c, visible: car.visible } : c))
-      );
     }
   };
+
+  // const handleDelete = (id) => {
+  //   if (confirm("Are you sure you want to delete this car?")) {
+  //     axios
+  //         .delete(`${BASE_URL}/vehicles/${id}`)
+  //         .then(() => {
+  //           setCars((prev) => prev.filter((car) => car._id !== id));
+  //         })
+  //         .catch((err) => {
+  //           console.error("Delete failed:", err);
+  //           alert("Failed to delete vehicle");
+  //         });
+  //   }
+  // };
 
   if (isLoading)
     return (
