@@ -1,12 +1,8 @@
 "use client";
-import axios from "axios";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
-import useSWR from "swr";
+import useSWR , {mutate} from "swr";
 import { useAuthFetcher, useAuthPut } from "@/utils/useAuthFetcher";
-
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-const useDummyData = false; // Set to false for real API integration
 
 export default function InboxPage() {
   const [selectedRequest, setSelectedRequest] = useState(null);
@@ -18,24 +14,20 @@ export default function InboxPage() {
 
   console.log("Inbox requests:", requests);
 
-const markAsRead = (requestId) => {
-  authPut(`/inbox/read/${requestId}`, { status: true })
-    .then(() => {
-      toast.success("Marked as read");
+    const markAsRead = async (requestId) => {
+        try {
+            await authPut(`/inbox/read/${requestId}`, { status: true });
+            toast.success("Marked as read");
 
-      // Update the selected request locally if it's the one being marked
-      if (selectedRequest && selectedRequest._id === requestId) {
-        setSelectedRequest((prev) => ({ ...prev, status: true }));
-      }
-      console.log("Marked request as read:", requestId);
-      // Optional: refresh SWR data
-      mutate("/inbox/all");
-    })
-    .catch((err) => {
-      console.error("Error updating status:", err);
-      toast.error("Update failed");
-    });
-};
+            if (selectedRequest && selectedRequest._id === requestId) {
+                setSelectedRequest((prev) => ({ ...prev, status: true }));
+            }
+            await mutate("/inbox/all");
+        } catch (err) {
+            console.error("Error updating status:", err);
+            toast.error("Update failed");
+        }
+    };
 
   if (isLoading) {
     return (
@@ -54,18 +46,13 @@ const markAsRead = (requestId) => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {Array.isArray(requests) && requests.length > 0 ? (
           requests.map((request) => (
-            <div
-              key={request._id}
-              className={`bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-6 cursor-pointer ${
-                !request.status ? "border-l-4 border-blue-500" : ""
-              }`}
-              onClick={() => {
-                setSelectedRequest(request);
-                if (!request.status) {
-                  markAsRead(request._id);
-                }
-              }}
-            >
+              <div
+                  key={request._id}
+                  className={`bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-6 cursor-pointer ${
+                      !request.status ? "border-l-4 border-blue-500" : ""
+                  }`}
+                  onClick={() => setSelectedRequest(request)}
+              >
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">
