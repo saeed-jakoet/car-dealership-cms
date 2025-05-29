@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import AdminCarsTable from '@/components/admin/CarsTable';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
-import { getCars } from '@/actions/carActions';
+
 
 export default async function AdminCarsPage() {
     const cookieStore = await cookies();
@@ -14,7 +14,7 @@ export default async function AdminCarsPage() {
     redirect('/auth/login');
   }
 
-  const cars = await getCars();
+
 
   return (
     <div>

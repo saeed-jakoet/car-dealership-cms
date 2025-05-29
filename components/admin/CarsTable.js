@@ -1,7 +1,5 @@
 "use client";
-import axios from "axios";
 import useSWR, { mutate } from 'swr';
-import { useState, useEffect } from "react";
 import {
   FiDroplet,
   FiMapPin,
