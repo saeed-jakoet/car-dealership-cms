@@ -1,13 +1,11 @@
-// app/admin/cars/[id]/edit/page.js
 "use client";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
 import { useForm } from "react-hook-form";
 import { FiSave, FiXCircle, FiTrash2, FiUploadCloud } from "react-icons/fi";
-import Cookies from "js-cookie"; // Add this at the top with your imports
-
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+import Cookies from "js-cookie";
+import { useAuthPut, useAuthFetcher } from "@/utils/useAuthFetcher";
 
 export default function EditCarPage() {
   const { id } = useParams();
@@ -23,13 +21,16 @@ export default function EditCarPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [newImages, setNewImages] = useState([]);
+  const authPut = useAuthPut();
+  const fetcher = useAuthFetcher();
+
 
   useEffect(() => {
     const fetchCar = async () => {
       try {
-        const response = await axios.get(`${BASE_URL}/vehicles/${id}`);
-        setCar(response.data.data);
-        populateForm(response.data.data);
+        const data = await authFetcher(`/vehicles/${id}`);
+        setCar(data);
+        populateForm(data);
       } catch (err) {
         console.error("Error fetching vehicle:", err);
         setError("Failed to load vehicle data");
@@ -39,7 +40,7 @@ export default function EditCarPage() {
     };
 
     fetchCar();
-  }, [id,]);
+  }, [id]);
 
   const populateForm = (carData) => {
     setValue("name", carData.name);
@@ -62,7 +63,6 @@ export default function EditCarPage() {
   const onSubmit = async (data) => {
     setIsSubmitting(true);
     try {
-      // Format the data to match your API expectations
       const formattedData = {
         ...data,
         price: String(data.price),
@@ -79,27 +79,9 @@ export default function EditCarPage() {
         },
       };
 
-      const token = Cookies.get("accessToken"); // Get token from cookies
-      if (!token) {
-        setError("No access token found");
-        setIsSubmitting(false);
-        return;
-      }
+      const response = await authPut(`/vehicles/edit/${id}`, formattedData);
 
-      // Call your API endpoint
-      const response = await axios.put(
-        `${BASE_URL}/vehicles/edit/${id}`,
-        formattedData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          withCredentials: true,
-        }
-      );
-
-      if (response.status === 200) {
+      if (response) {
         router.push(`/admin/cars/${id}`);
       }
     } catch (err) {

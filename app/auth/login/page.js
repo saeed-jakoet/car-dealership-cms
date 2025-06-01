@@ -4,8 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import Cookies from 'js-cookie';
 import axios from 'axios';
-
-const BASEURL = process.env.NEXT_PUBLIC_API_URL
+import {useAuthPost} from "@/utils/useAuthFetcher";
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -13,6 +12,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const authPost = useAuthPost();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,13 +20,11 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await axios.post(`${BASEURL}/auth/login`, {email, password});
-      console.log('Login response:', response);
-      const token = response.data.data.accessToken;
+      const response = await authPost('/auth/login', { email, password });
+      const token = response.data.accessToken;
       Cookies.set('accessToken', token);
       router.push('/admin');
     } catch (err) {
-      console.error('Login error:', err);
       if (err.response?.data?.message) {
         setError(err.response.data.message);
       } else {

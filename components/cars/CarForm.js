@@ -3,8 +3,6 @@ import { useState } from "react";
 import axios from "axios";
 import Cookies from "js-cookie";
 
-const BASEURL = process.env.NEXT_PUBLIC_API_URL;
-
 const carBrands = [
   "Acura",
   "Alfa Romeo",
@@ -139,6 +137,7 @@ export default function CarForm() {
   const [formData, setFormData] = useState(INITIAL_STATE);
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
+  const authPost = useAuthPost();
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -215,12 +214,9 @@ export default function CarForm() {
       // Optionally, append a folder name
       form.append("folder", formData.name);
 
-      const res = await axios.post(`${BASEURL}/vehicles/new`, form, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`, // Pass token in header
-        },
-        withCredentials: true, // In case your API expects cookies too
+      const res = await authPost(`${BASEURL}/vehicles/new`, form, {
+        headers: { "Content-Type": "multipart/form-data" },
+        withCredentials: true,
       });
 
       setSuccessMsg("Vehicle added successfully!");
@@ -391,7 +387,7 @@ export default function CarForm() {
           <button
             type="button"
             onClick={() => addArrayItem("extras")}
-            className="text-blue-600 text-sm hover:underline cursor-pointer"
+            className="text-black-600 text-sm hover:underline cursor-pointer"
           >
             + Add Extra
           </button>
@@ -505,7 +501,7 @@ export default function CarForm() {
           <div className="flex items-center space-x-4">
             <label
               htmlFor="imageUpload"
-              className="cursor-pointer inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
+              className="cursor-pointer inline-flex items-center px-4 py-2 bg-black text-white rounded-lg shadow hover:bg-gray-700 transition"
             >
               <svg
                 className="w-5 h-5 mr-2"
@@ -554,7 +550,7 @@ export default function CarForm() {
 
         <button
           type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 transition text-white font-semibold py-3 rounded-lg shadow-md cursor-pointer"
+          className="w-full bg-black hover:bg-gray-700 transition text-white font-semibold py-3 rounded-lg shadow-md cursor-pointer"
         >
           Save Vehicle
         </button>

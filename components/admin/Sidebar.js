@@ -1,5 +1,6 @@
 'use client';
 
+import Cookies from 'js-cookie';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
@@ -11,9 +12,16 @@ import {
     FiStar,
     FiInbox
 } from 'react-icons/fi';
+import { useRouter } from 'next/navigation';
 
 export default function AdminSidebar() {
     const pathname = usePathname();
+    const router = useRouter();
+
+    const handleLogout = () => {
+        Cookies.remove('accessToken');
+        router.push('/auth/login');
+    };
 
     const navItems = [
         { href: '/admin', icon: <FiHome />, text: 'Dashboard' },
@@ -48,8 +56,8 @@ export default function AdminSidebar() {
                             className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200
                 ${
                                 isActive
-                                    ? 'bg-blue-600 text-white shadow-sm'
-                                    : 'text-gray-700 hover:bg-gray-100'
+                                    ? 'bg-black text-white shadow-sm'
+                                    : 'text-gray-800 hover:bg-neutral-100'
                             }`}
                         >
                             <span className="text-lg">{item.icon}</span>
@@ -62,6 +70,7 @@ export default function AdminSidebar() {
             <div className="px-4 py-4 border-t border-gray-100">
                 <button
                     className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
+                    onClick={handleLogout}
                 >
                     <FiLogOut className="text-base" />
                     Logout
