@@ -1,7 +1,5 @@
 "use client";
 import { useState } from "react";
-import axios from "axios";
-import Cookies from "js-cookie";
 import {useAuthPost} from "@/utils/useAuthFetcher";
 
 const carBrands = [
@@ -252,7 +250,7 @@ export default function CarForm() {
               name="brand"
               value={formData.brand}
               onChange={handleChange}
-              className="w-full rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+              className="w-full rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-black transition"
               required
             >
               <option value=""></option>

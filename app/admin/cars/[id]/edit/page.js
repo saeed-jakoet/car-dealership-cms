@@ -4,7 +4,6 @@ import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
 import { useForm } from "react-hook-form";
 import { FiSave, FiXCircle, FiTrash2, FiUploadCloud } from "react-icons/fi";
-import Cookies from "js-cookie";
 import { useAuthPut, useAuthFetcher } from "@/utils/useAuthFetcher";
 
 export default function EditCarPage() {
@@ -22,7 +21,7 @@ export default function EditCarPage() {
   const [error, setError] = useState("");
   const [newImages, setNewImages] = useState([]);
   const authPut = useAuthPut();
-  const fetcher = useAuthFetcher();
+  const authFetcher = useAuthFetcher();
 
 
   useEffect(() => {
