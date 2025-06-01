@@ -2,6 +2,7 @@
 import { useState } from "react";
 import axios from "axios";
 import Cookies from "js-cookie";
+import {useAuthPost} from "@/utils/useAuthFetcher";
 
 const carBrands = [
   "Acura",
@@ -174,17 +175,8 @@ export default function CarForm() {
     setLoading(true);
 
     try {
-      const token = Cookies.get("accessToken"); // Get token from cookies
-
-      if (!token) {
-        alert("You must be logged in to post a vehicle.");
-        setLoading(false);
-        return;
-      }
-
       const form = new FormData();
 
-      // Append primitive fields
       form.append("name", formData.name);
       form.append("used", String(formData.used));
       form.append("mileage", formData.mileage);
@@ -214,7 +206,7 @@ export default function CarForm() {
       // Optionally, append a folder name
       form.append("folder", formData.name);
 
-      const res = await authPost(`${BASEURL}/vehicles/new`, form, {
+      const res = await authPost("/vehicles/new", form, {
         headers: { "Content-Type": "multipart/form-data" },
         withCredentials: true,
       });

@@ -37,20 +37,6 @@ export default function AdminCarsCards() {
     }
   };
 
-  // const handleDelete = (id) => {
-  //   if (confirm("Are you sure you want to delete this car?")) {
-  //     axios
-  //         .delete(`${BASE_URL}/vehicles/${id}`)
-  //         .then(() => {
-  //           setCars((prev) => prev.filter((car) => car._id !== id));
-  //         })
-  //         .catch((err) => {
-  //           console.error("Delete failed:", err);
-  //           alert("Failed to delete vehicle");
-  //         });
-  //   }
-  // };
-
   if (isLoading)
     return (
       <div className="min-h-screen flex items-center justify-center">
