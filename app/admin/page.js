@@ -10,7 +10,6 @@ export default async function AdminCarsPage() {
     const token = cookieStore.get('accessToken');
 
   if (!token) {
-    
     redirect('/auth/login');
   }
 

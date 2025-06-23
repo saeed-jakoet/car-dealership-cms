@@ -27,7 +27,7 @@ export default function AdminSidebar() {
         { href: '/admin', icon: <FiHome />, text: 'Dashboard' },
         { href: '/admin/inbox', icon: <FiInbox />, text: 'Inbox' },
         { href: '/admin/reviews', icon: <FiStar />, text: 'Manage Reviews' },
-        { href: '/admin/settings', icon: <FiSettings />, text: 'Settings' },
+        // { href: '/admin/settings', icon: <FiSettings />, text: 'Settings' },
     ];
 
     return (
