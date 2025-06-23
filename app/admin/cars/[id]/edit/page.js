@@ -362,7 +362,7 @@ export default function EditCarPage() {
           <button
               type="submit"
               disabled={isSubmitting}
-              className={`w-full py-3 rounded-lg bg-black text-white font-semibold shadow-md flex justify-center items-center transition ${
+              className={`w-full py-3 rounded-lg bg-black text-white font-semibold shadow-md flex justify-center items-center transition cursor-pointer ${
                   isSubmitting ? "opacity-60 cursor-not-allowed" : "hover:bg-gray-800"
               }`}
           >

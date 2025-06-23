@@ -11,6 +11,10 @@ import {
 import Link from "next/link";
 import { toast } from "react-hot-toast";
 import { useAuthFetcher, useAuthPut } from "@/utils/useAuthFetcher";
+import { BsFuelPumpFill } from "react-icons/bs";
+import { BiSolidColorFill } from "react-icons/bi";
+import { SlSpeedometer } from "react-icons/sl";
+
 
 const TOAST_ID = "admin-action";
 
@@ -81,21 +85,21 @@ export default function AdminCarsCards() {
                 </p>
               </div>
               <span className="text-lg font-semibold text-blue-600">
-                R {car.price}
+                R {Number(car.price).toLocaleString()}
               </span>
             </div>
 
             <div className="grid grid-cols-2 gap-2 text-sm text-gray-700">
               <div className="flex items-center gap-2">
-                <FiZap className="text-blue-500" />
+                <BsFuelPumpFill className="text-blue-500" />
                 <span>{car.fuelType}</span>
               </div>
               <div className="flex items-center gap-2">
-                <FiMapPin className="text-green-500" />
+                <SlSpeedometer className="text-green-500" />
                 <span>{car.mileage} km</span>
               </div>
               <div className="flex items-center gap-2">
-                <FiDroplet className="text-pink-500" />
+                <BiSolidColorFill className="text-pink-500" />
                 <span>{car.vehicleDetails?.colour || "N/A"}</span>
               </div>
               <div className="flex items-center gap-2">
