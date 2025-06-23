@@ -210,7 +210,7 @@ export default function NewReviewModal({ isOpen, onClose }) {
                                 <button
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center"
+                                    className="w-full bg-black text-white py-3 px-6 rounded-lg hover:bg-gray-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center cursor-pointer"
                                 >
                                     {isSubmitting ? (
                                         <>

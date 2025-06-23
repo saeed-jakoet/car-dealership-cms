@@ -11,7 +11,12 @@ export default function AdminReviewsPage() {
         <div>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold text-gray-800">Manage Customer Reviews</h1>
-                <Button onClick={() => setModalOpen(true)}>Add New Review</Button>
+                <Button
+                    onClick={() => setModalOpen(true)}
+                    className="cursor-pointer"
+                >
+                    Add New Review
+                </Button>
             </div>
 
             <AdminReviews reviews={[]} />

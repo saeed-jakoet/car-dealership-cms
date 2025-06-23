@@ -20,9 +20,9 @@ export default async function AdminCarsPage() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Manage Vehicle Listings</h1>
         <Link href="/admin/cars/new">
-          <Button>
-            Add New Vehicle
-          </Button>
+            <Button className="cursor-pointer">
+                Add New Vehicle
+            </Button>
         </Link>
       </div>
 
