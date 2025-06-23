@@ -28,11 +28,9 @@ export default function AdminCarsCards() {
     const newVisible = !car.visible;
     try {
       const response = await authPut(`/vehicles/visible/${id}`, { visible: newVisible });
-      console.log("Visibility update response:", response);
       toast.success(`Car is now ${newVisible ? "visible" : "hidden"} 🎉`, { id: TOAST_ID });
       mutate("/vehicles/all");
     } catch (err) {
-      console.log(err);
       toast.error("Failed to update visibility ❌", { id: TOAST_ID });
     }
   };

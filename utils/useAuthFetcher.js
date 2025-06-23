@@ -41,6 +41,14 @@ export function useAuthPost() {
     };
 }
 
+export function useLoginPost() {
+    return async (url, data) => {
+        const fullUrl = url.startsWith("http") ? url : `${BASE_URL}${url}`;
+        const res = await axios.post(fullUrl, data);
+        return res.data;
+    };
+}
+
 export function useAuthPut() {
     const token = useToken();
     return async (url, data) => {

@@ -12,8 +12,6 @@ export default function InboxPage() {
 
   const { data: requests, error, isLoading } = useSWR("/inbox/all", fetcher);
 
-  console.log("Inbox requests:", requests);
-
     const markAsRead = async (requestId) => {
         try {
             await authPut(`/inbox/read/${requestId}`, { status: true });
@@ -24,7 +22,6 @@ export default function InboxPage() {
             }
             await mutate("/inbox/all");
         } catch (err) {
-            console.error("Error updating status:", err);
             toast.error("Update failed");
         }
     };
