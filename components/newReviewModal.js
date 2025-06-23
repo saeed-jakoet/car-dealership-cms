@@ -4,15 +4,16 @@ import { Fragment, useEffect, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/solid";
 import { useForm } from "react-hook-form";
-import axios from "axios";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import { mutate } from 'swr'; // ✅ Add this if not already
+import { mutate } from 'swr';
+import { useAuthPost } from "../utils/useAuthFetcher";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function NewReviewModal({ isOpen, onClose }) {
     const router = useRouter();
+    const authPost = useAuthPost();
     const {
         register,
         handleSubmit,
@@ -44,16 +45,14 @@ export default function NewReviewModal({ isOpen, onClose }) {
                 createdAt: new Date().toISOString(),
             };
 
-            // ✅ Optimistically add the review to the UI immediately
             await mutate(`${BASE_URL}/reviews/all`, (current = []) => [reviewData, ...current], false);
 
-            // ✅ Then send the POST request
-            const response = await axios.post(`${BASE_URL}/reviews/new`, reviewData);
+            const response = await authPost('/reviews/new', reviewData);
 
             if (response.status === 200) {
                 toast.success("Review submitted!");
                 onClose();
-                reset();  // Close modal
+                reset();  l
 
                 // ✅ Revalidate the cache to ensure it's accurate
                await mutate(`${BASE_URL}/reviews/all`);
@@ -233,3 +232,4 @@ export default function NewReviewModal({ isOpen, onClose }) {
         </Transition>
     );
 }
+
