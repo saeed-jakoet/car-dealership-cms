@@ -47,79 +47,83 @@ export default function AdminCarsCards() {
     );
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {cars.map((car) => (
-        <div
-          key={car._id}
-          className={`bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-all duration-300 group relative ${
-            !car.visible ? "opacity-50 grayscale pointer-events-none" : ""
-          }`}
-        >
-          <Link
-            href={`/admin/cars/${car._id}`}
-            className="block cursor-pointer"
-          >
-            <div className="relative">
-              <img
-                src={car.imageUrl || "/placeholder.jpg"}
-                alt={car.name}
-                className="w-full h-48 object-cover"
-              />
-              <div
-                className={`absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${
-                  car.used
-                    ? "bg-yellow-100 text-yellow-800"
-                    : "bg-green-100 text-green-800"
-                }`}
-              >
-                {car.used ? "Used Car" : "Brand New"}
-              </div>
-            </div>
-          </Link>
-          <div className="p-4 space-y-3">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">{car.name}</h2>
-              <span className="text-lg font-semibold text-blue-600 whitespace-nowrap">
+      (!Array.isArray(cars) || cars.length === 0) ? (
+          <p className="text-gray-500 text-center py-12">No vehicles found.</p>
+      ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {cars.map((car) => (
+                <div
+                    key={car._id}
+                    className={`bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-all duration-300 group relative ${
+                        !car.visible ? "opacity-50 grayscale pointer-events-none" : ""
+                    }`}
+                >
+                  <Link
+                      href={`/admin/cars/${car._id}`}
+                      className="block cursor-pointer"
+                  >
+                    <div className="relative">
+                      <img
+                          src={car.imageUrl || "/placeholder.jpg"}
+                          alt={car.name}
+                          className="w-full h-48 object-cover"
+                      />
+                      <div
+                          className={`absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${
+                              car.used
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-green-100 text-green-800"
+                          }`}
+                      >
+                        {car.used ? "Used Car" : "Brand New"}
+                      </div>
+                    </div>
+                  </Link>
+                  <div className="p-4 space-y-3">
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900">{car.name}</h2>
+                      <span className="text-lg font-semibold text-blue-600 whitespace-nowrap">
                 R {Number(car.price).toLocaleString()}
               </span>
-              <p className="text-sm text-gray-500">
-                {car.brand} • {car.transmissionType}
-              </p>
-            </div>
+                      <p className="text-sm text-gray-500">
+                        {car.brand} • {car.transmissionType}
+                      </p>
+                    </div>
 
-            <div className="grid grid-cols-2 gap-2 text-sm text-gray-700">
-              <div className="flex items-center gap-2">
-                <BsFuelPumpFill className="text-blue-500" />
-                <span>{car.fuelType}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <SlSpeedometer className="text-green-500" />
-                <span>{car.mileage} km</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <BiSolidColorFill className="text-pink-500" />
-                <span>{car.vehicleDetails?.colour || "N/A"}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <FiCalendar className="text-gray-500" />
-                <span>{new Date(car.createdAt).toLocaleDateString()}</span>
-              </div>
-            </div>
+                    <div className="grid grid-cols-2 gap-2 text-sm text-gray-700">
+                      <div className="flex items-center gap-2">
+                        <BsFuelPumpFill className="text-blue-500" />
+                        <span>{car.fuelType}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <SlSpeedometer className="text-green-500" />
+                        <span>{car.mileage} km</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <BiSolidColorFill className="text-pink-500" />
+                        <span>{car.vehicleDetails?.colour || "N/A"}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <FiCalendar className="text-gray-500" />
+                        <span>{new Date(car.createdAt).toLocaleDateString()}</span>
+                      </div>
+                    </div>
 
-            <div className="flex justify-end gap-3 mt-4">
-              <button
-                className={`pointer-events-auto text-gray-600 hover:text-gray-800 cursor-pointer${
-                  !car.visible ? " opacity-50" : ""
-                }`}
-                title={car.visible ? "Visible" : "Hidden"}
-                onClick={() => handleToggleVisible(car._id)}
-              >
-                {car.visible ? <FiEye /> : <FiEyeOff />}
-              </button>
-            </div>
+                    <div className="flex justify-end gap-3 mt-4">
+                      <button
+                          className={`pointer-events-auto text-gray-600 hover:text-gray-800 cursor-pointer${
+                              !car.visible ? " opacity-50" : ""
+                          }`}
+                          title={car.visible ? "Visible" : "Hidden"}
+                          onClick={() => handleToggleVisible(car._id)}
+                      >
+                        {car.visible ? <FiEye /> : <FiEyeOff />}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+            ))}
           </div>
-        </div>
-      ))}
-    </div>
+      )
   );
-}
+  }
