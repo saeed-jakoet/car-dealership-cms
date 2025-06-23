@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { Tab } from '@headlessui/react';
 import { ExclamationIcon } from '@/components/icons';
 import Cookies from 'js-cookie'; // <-- Add this import
+import { CheckIcon } from '@heroicons/react/24/solid';
 
 export default function SettingsPage() {
   const [user, setUser] = useState(null);

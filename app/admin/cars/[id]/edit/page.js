@@ -31,7 +31,6 @@ export default function EditCarPage() {
         setCar(data);
         populateForm(data);
       } catch (err) {
-        console.error("Error fetching vehicle:", err);
         setError("Failed to load vehicle data");
       } finally {
         setIsLoading(false);
@@ -39,7 +38,7 @@ export default function EditCarPage() {
     };
 
     fetchCar();
-  }, [id]);
+  }, [id, authFetcher, populateForm]);
 
   const populateForm = (carData) => {
     setValue("name", carData.name);
