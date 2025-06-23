@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import AdminReviews from '@/components/admin/reviewsTable';
 import { Button } from '@/components/ui/Button';
-import NewReviewModal from '@/components/NewReviewModal';
+import newReviewModal from '@/components/NewReviewModal';
 
 export default function AdminReviewsPage() {
     const [modalOpen, setModalOpen] = useState(false);
@@ -16,7 +16,7 @@ export default function AdminReviewsPage() {
 
             <AdminReviews reviews={[]} />
 
-            <NewReviewModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
+            <newReviewModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
         </div>
     );
 }
