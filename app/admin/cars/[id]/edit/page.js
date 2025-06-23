@@ -1,65 +1,103 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
 import { useForm } from "react-hook-form";
-import { FiSave, FiXCircle, FiTrash2, FiUploadCloud } from "react-icons/fi";
+import { FiSave, FiXCircle, FiTrash2 } from "react-icons/fi";
 import { useAuthPut, useAuthFetcher } from "@/utils/useAuthFetcher";
+
+const carBrands = [
+  "Acura", "Alfa Romeo", "Aston Martin", "Audi", "Bentley", "BMW", "Bugatti", "Buick",
+  "Cadillac", "Chevrolet", "Chrysler", "Citroën", "Dacia", "Daewoo", "Daihatsu", "Dodge",
+  "Donkervoort", "DS Automobiles", "Ferrari", "Fiat", "Fisker", "Ford", "Genesis", "GMC",
+  "Great Wall", "Haval", "Holden", "Honda", "Hummer", "Hyundai", "Infiniti", "Isuzu", "Jaguar",
+  "Jeep", "Kia", "Koenigsegg", "Lada", "Lamborghini", "Lancia", "Land Rover", "Lexus", "Lincoln",
+  "Lotus", "Lucid", "Mahindra", "Maserati", "Maybach", "Mazda", "McLaren", "Mercedes-Benz",
+  "Mercury", "Mini", "Mitsubishi", "Morgan", "Nissan", "Noble", "Opel", "Pagani", "Peugeot",
+  "Polestar", "Pontiac", "Porsche", "Proton", "RAM", "Renault", "Rimac", "Rivian", "Rolls-Royce",
+  "Rover", "Saab", "Saturn", "Scion", "SEAT", "Skoda", "Smart", "SsangYong", "Subaru", "Suzuki",
+  "Tata", "Tesla", "Toyota", "Vauxhall", "Volkswagen", "Volvo", "Wiesmann", "Zotye",
+];
+
+const carBodyTypes = [
+  "Sedan", "Hatchback", "SUV", "Coupe", "Convertible", "Wagon", "Pickup", "Van", "Minivan",
+  "Crossover", "Roadster", "Sports Car", "Luxury Car", "Off-Road", "Microcar",
+];
 
 export default function EditCarPage() {
   const { id } = useParams();
   const router = useRouter();
+
   const {
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors },
-  } = useForm();
+    reset,
+  } = useForm({
+    defaultValues: {
+      name: "",
+      brand: "",
+      price: "",
+      year: "",
+      mileage: "",
+      fuelType: "",
+      transmissionType: "",
+      used: false,
+      colour: "",
+      bodyType: "",
+      previousOwners: "",
+      serviceHistory: "",
+      warranty: "",
+      extras: "",
+      sellerComments: "",
+    },
+  });
+
   const [car, setCar] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [newImages, setNewImages] = useState([]);
+
   const authPut = useAuthPut();
   const authFetcher = useAuthFetcher();
-
 
   useEffect(() => {
     const fetchCar = async () => {
       try {
         const data = await authFetcher(`/vehicles/${id}`);
         setCar(data);
-        populateForm(data);
+        reset({
+          name: data.name || "",
+          brand: data.brand || "",
+          price: data.price || "",
+          year: String(data.year) || "",
+          mileage: data.mileage || "",
+          fuelType: data.fuelType || "",
+          transmissionType: data.transmissionType || "",
+          used: data.used || false,
+          colour: data.vehicleDetails?.colour || "",
+          bodyType: data.vehicleDetails?.bodyType || "",
+          previousOwners: data.vehicleDetails?.previousOwners || "",
+          serviceHistory: data.vehicleDetails?.serviceHistory || "",
+          warranty: data.vehicleDetails?.warranty || "",
+          extras: data.extras?.join(", ") || "",
+          sellerComments: data.sellerComments || "",
+        });
       } catch (err) {
         setError("Failed to load vehicle data");
       } finally {
         setIsLoading(false);
       }
     };
-
     fetchCar();
-  }, [id, authFetcher, populateForm]);
-
-  const populateForm = (carData) => {
-    setValue("name", carData.name);
-    setValue("brand", carData.brand);
-    setValue("price", carData.price);
-    setValue("year", carData.year);
-    setValue("mileage", carData.mileage);
-    setValue("fuelType", carData.fuelType);
-    setValue("transmissionType", carData.transmissionType);
-    setValue("used", carData.used);
-    setValue("colour", carData.vehicleDetails?.colour);
-    setValue("bodyType", carData.vehicleDetails?.bodyType);
-    setValue("previousOwners", carData.vehicleDetails?.previousOwners);
-    setValue("serviceHistory", carData.vehicleDetails?.serviceHistory);
-    setValue("warranty", carData.vehicleDetails?.warranty);
-    setValue("extras", carData.extras?.join(", "));
-    setValue("sellerComments", carData.sellerComments);
-  };
+  }, [id]);
 
   const onSubmit = async (data) => {
     setIsSubmitting(true);
+    setError("");
     try {
       const formattedData = {
         ...data,
@@ -67,7 +105,7 @@ export default function EditCarPage() {
         year: String(data.year),
         mileage: String(data.mileage),
         previousOwners: Number(data.previousOwners),
-        extras: data.extras.split(",").map((e) => e.trim()),
+        extras: data.extras ? data.extras.split(",").map((e) => e.trim()) : [],
         vehicleDetails: {
           colour: data.colour,
           bodyType: data.bodyType,
@@ -77,350 +115,330 @@ export default function EditCarPage() {
         },
       };
 
-      const response = await authPut(`/vehicles/edit/${id}`, formattedData);
-
-      if (response) {
-        router.push(`/admin/cars/${id}`);
-      }
-    } catch (err) {
-      console.error("Update failed:", err);
-      setError("Failed to update vehicle");
+      await authPut(`/vehicles/edit/${id}`, formattedData);
       router.push(`/admin/cars/${id}`);
+    } catch (err) {
+      setError("Failed to update vehicle");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleDelete = async () => {
-    if (confirm("Are you sure you want to delete this vehicle?")) {
-      try {
-        await axios.delete(`${BASE_URL}/vehicles/${id}`);
-        router.push("/admin/cars");
-      } catch (err) {
-        console.error("Delete failed:", err);
-        alert("Failed to delete vehicle");
-      }
-    }
-  };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black"></div>
+        </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-red-500 text-lg">{error}</div>
-      </div>
+        <div className="min-h-screen flex items-center justify-center">
+          <p className="text-red-600 font-semibold">{error}</p>
+        </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Edit Vehicle</h1>
-          <div className="flex gap-4">
+      <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-8 my-10">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-semibold text-gray-900">Edit Vehicle</h1>
+          <div className="flex space-x-4">
             <button
-              onClick={() => router.push(`/admin/cars/${id}`)}
-              className="flex items-center px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                type="button"
+                onClick={() => router.push(`/admin/cars/${id}`)}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-black text-white hover:bg-gray-700 cursor-pointer"
             >
-              <FiXCircle className="mr-2" />
+              <FiXCircle />
               Cancel
-            </button>
-            <button
-              onClick={handleDelete}
-              className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-            >
-              <FiTrash2 className="mr-2" />
-              Delete
             </button>
           </div>
         </div>
 
+        <h1 className="text-2xl font-bold mb-6">Add New Vehicle</h1>
+
         <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="bg-white rounded-xl shadow-md p-6 space-y-6"
+            key={car ? car.id : "new"}
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-10"
         >
-          {/* Basic Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Vehicle Name
-              </label>
-              <input
+          {/* Vehicle Information */}
+          <fieldset className="border-b border-gray-200 pb-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <legend className="text-xl font-semibold text-gray-700 mb-4 md:col-span-2">
+              Vehicle Information
+            </legend>
+
+            {/* Vehicle Name */}
+            <Input
+                label="Vehicle Name"
                 {...register("name", { required: "Name is required" })}
-                className="w-full px-4 py-2 border rounded-lg"
-              />
-              {errors.name && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.name.message}
-                </p>
-              )}
-            </div>
+                error={errors.name}
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Brand
-              </label>
-              <input
+            {/* Brand Select */}
+            <Select
+                label="Brand"
                 {...register("brand", { required: "Brand is required" })}
-                className="w-full px-4 py-2 border rounded-lg"
-              />
-              {errors.brand && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.brand.message}
-                </p>
-              )}
-            </div>
+                options={carBrands}
+                error={errors.brand}
+                value={watch("brand")}
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Price (ZAR)
-              </label>
-              <input
+            {/* Price */}
+            <Input
+                label="Price (ZAR)"
                 type="number"
                 {...register("price", {
                   required: "Price is required",
-                  min: 0,
+                  min: { value: 0, message: "Price must be positive" },
                 })}
-                className="w-full px-4 py-2 border rounded-lg"
-              />
-              {errors.price && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.price.message}
-                </p>
-              )}
-            </div>
+                error={errors.price}
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Year
-              </label>
-              <input
-                type="number"
-                {...register("year", {
-                  required: "Year is required",
-                  min: 1900,
-                  max: new Date().getFullYear() + 1,
-                })}
-                className="w-full px-4 py-2 border rounded-lg"
-              />
-              {errors.year && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.year.message}
-                </p>
-              )}
-            </div>
-          </div>
+            {/* Year */}
+            <Select
+                label="Year"
+                {...register("year", { required: "Year is required" })}
+                options={Array.from({ length: 30 }, (_, i) => String(new Date().getFullYear() - i))}
+                error={errors.year}
+                value={watch("year")}
+            />
+          </fieldset>
 
           {/* Vehicle Details */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Mileage (km)
-              </label>
-              <input
+          <fieldset className="border-b border-gray-200 pb-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <legend className="text-xl font-semibold text-gray-700 mb-4 md:col-span-2">
+              Vehicle Details
+            </legend>
+
+            {/* Mileage */}
+            <Input
+                label="Mileage (km)"
                 type="number"
                 {...register("mileage", {
                   required: "Mileage is required",
-                  min: 0,
+                  min: { value: 0, message: "Mileage must be positive" },
                 })}
-                className="w-full px-4 py-2 border rounded-lg"
-              />
-              {errors.mileage && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.mileage.message}
-                </p>
-              )}
-            </div>
+                error={errors.mileage}
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Fuel Type
-              </label>
-              <select
+            {/* Fuel Type */}
+            <Select
+                label="Fuel Type"
                 {...register("fuelType", { required: "Fuel type is required" })}
-                className="w-full px-4 py-2 border rounded-lg"
-              >
-                <option value="Petrol">Petrol</option>
-                <option value="Diesel">Diesel</option>
-                <option value="Electric">Electric</option>
-                <option value="Hybrid">Hybrid</option>
-              </select>
-            </div>
+                options={["Petrol", "Diesel", "Electric", "Hybrid"]}
+                error={errors.fuelType}
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Transmission
-              </label>
-              <select
-                {...register("transmissionType", {
-                  required: "Transmission is required",
-                })}
-                className="w-full px-4 py-2 border rounded-lg"
-              >
-                <option value="Automatic">Automatic</option>
-                <option value="Manual">Manual</option>
-              </select>
-            </div>
+            {/* Transmission */}
+            <Select
+                label="Transmission"
+                {...register("transmissionType", { required: "Transmission is required" })}
+                options={["Automatic", "Manual"]}
+                error={errors.transmissionType}
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Condition
+            {/* Used Checkbox */}
+            <div className="flex items-center space-x-2 mt-4 md:mt-0">
+              <input
+                  type="checkbox"
+                  {...register("used")}
+                  id="usedCheckbox"
+                  className="w-5 h-5 rounded border-gray-300 cursor-pointer"
+              />
+              <label htmlFor="usedCheckbox" className="text-gray-700 select-none cursor-pointer">
+                Used Car
               </label>
-              <select
-                {...register("used")}
-                className="w-full px-4 py-2 border rounded-lg"
-              >
-                <option value={false}>New</option>
-                <option value={true}>Used</option>
-              </select>
             </div>
-          </div>
+          </fieldset>
 
           {/* Additional Details */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Color
-              </label>
-              <input
-                {...register("colour")}
-                className="w-full px-4 py-2 border rounded-lg"
-              />
-            </div>
+          <fieldset className="border-b border-gray-200 pb-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <legend className="text-xl font-semibold text-gray-700 mb-4 md:col-span-2">
+              Additional Details
+            </legend>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Body Type
-              </label>
-              <input
-                {...register("bodyType")}
-                className="w-full px-4 py-2 border rounded-lg"
-              />
-            </div>
+            {/* Color */}
+            <Input label="Color" {...register("colour")} />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Previous Owners
-              </label>
-              <input
-                type="number"
-                {...register("previousOwners")}
-                className="w-full px-4 py-2 border rounded-lg"
-              />
-            </div>
+            {/* Body Type */}
+            <Select label="Body Type" {...register("bodyType")} options={carBodyTypes} />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Warranty
-              </label>
-              <input
-                {...register("warranty")}
-                className="w-full px-4 py-2 border rounded-lg"
-              />
-            </div>
-          </div>
+            {/* Previous Owners */}
+            <Input label="Previous Owners" type="number" {...register("previousOwners")} />
 
-          {/* Extras and Comments */}
+            {/* Warranty */}
+            <Input label="Warranty" {...register("warranty")} />
+          </fieldset>
+
+          {/* Extras */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Extras (comma separated)
-            </label>
+            <label className="block text-gray-700 font-semibold mb-2">Extras (comma separated)</label>
             <input
-              {...register("extras")}
-              className="w-full px-4 py-2 border rounded-lg"
+                {...register("extras")}
+                className="w-full rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 p-3 transition"
             />
           </div>
 
+          {/* Seller Comments */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Seller Comments
-            </label>
+            <label className="block text-gray-700 font-semibold mb-2">Seller Comments</label>
             <textarea
-              {...register("sellerComments")}
-              rows="4"
-              className="w-full px-4 py-2 border rounded-lg"
-            ></textarea>
+                {...register("sellerComments")}
+                rows={4}
+                className="w-full rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 p-3 transition resize-none"
+            />
           </div>
 
           {/* Image Upload */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Images
-            </label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-              <FiUploadCloud className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">
-                Drag and drop images here, or click to upload
-              </p>
-              <input
-                type="file"
-                multiple
-                onChange={(e) => setNewImages([...e.target.files])}
-                className="hidden"
-                id="imageUpload"
-              />
+            <label className="block text-gray-700 font-semibold mb-3">Upload Images</label>
+            <div className="flex items-center space-x-4">
               <label
-                htmlFor="imageUpload"
-                className="mt-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer"
+                  htmlFor="imageUpload"
+                  className="cursor-pointer inline-flex items-center px-5 py-3 bg-black text-white rounded-lg shadow hover:bg-gray-700 transition"
               >
-                Upload Images
+                <svg
+                    className="w-5 h-5 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 12v8m0-8l3-3m-3 3l-3-3"
+                  />
+                </svg>
+                Choose Images
               </label>
-              {newImages.length > 0 && (
-                <p className="mt-2 text-sm text-gray-500">
-                  {newImages.length} new image(s) selected
-                </p>
-              )}
+              <input
+                  id="imageUpload"
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={(e) => setNewImages(Array.from(e.target.files || []))}
+                  className="hidden"
+              />
             </div>
+
+            {/* Preview new images */}
+            {newImages.length > 0 && (
+                <div className="mt-4 flex flex-wrap gap-4">
+                  {newImages.map((file, i) => (
+                      <img
+                          key={i}
+                          src={URL.createObjectURL(file)}
+                          alt={`Preview ${i + 1}`}
+                          className="w-24 h-24 object-cover rounded-lg border"
+                      />
+                  ))}
+                </div>
+            )}
+
+            {/* Existing images */}
+            {car?.images?.length > 0 && (
+                <div className="mt-6">
+                  <label className="block text-gray-700 font-semibold mb-2">Current Images</label>
+                  <div className="flex flex-wrap gap-4">
+                    {car.images.map((img, i) => (
+                        <img
+                            key={i}
+                            src={img}
+                            alt={`Current ${i + 1}`}
+                            className="w-24 h-24 object-cover rounded-lg border"
+                        />
+                    ))}
+                  </div>
+                </div>
+            )}
           </div>
 
-          {/* Existing Images */}
-          {car?.images?.length > 0 && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Current Images
-              </label>
-              <div className="grid grid-cols-3 gap-4">
-                {car.images.map((img, index) => (
-                  <div key={index} className="relative group">
-                    <img
-                      src={img}
-                      alt={`Current ${index + 1}`}
-                      className="w-full h-32 object-cover rounded-lg"
-                    />
-                    <button
-                      type="button"
-                      className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Submit Button */}
-          <div className="pt-6">
-            <button
+          {/* Submit */}
+          <button
               type="submit"
               disabled={isSubmitting}
-              className="flex items-center justify-center w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
-            >
-              <FiSave className="mr-2" />
-              {isSubmitting ? "Saving..." : "Save Changes"}
-            </button>
-          </div>
+              className={`w-full py-3 rounded-lg bg-black text-white font-semibold shadow-md flex justify-center items-center transition ${
+                  isSubmitting ? "opacity-60 cursor-not-allowed" : "hover:bg-gray-800"
+              }`}
+          >
+            {isSubmitting ? (
+                <>
+                  <svg
+                      className="animate-spin h-5 w-5 mr-2 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                  >
+                    <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                    />
+                    <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v8z"
+                    />
+                  </svg>
+                  Saving...
+                </>
+            ) : (
+                <>
+                  <FiSave className="mr-2" />
+                  Save Changes
+                </>
+            )}
+          </button>
 
-          {error && <p className="text-red-500 text-center">{error}</p>}
+          {error && <p className="text-red-600 text-center mt-4 font-semibold">{error}</p>}
         </form>
       </div>
-    </div>
+  );
+}
+
+// Reusable Input Component with label, error handling
+function Input({ label, error, ...props }) {
+  return (
+      <div>
+        <label className="block text-gray-700 font-medium mb-1">{label}</label>
+        <input
+            {...props}
+            className={`w-full rounded-lg border px-3 py-2 shadow-sm transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                error ? "border-red-500" : "border-gray-300"
+            }`}
+        />
+        {error && <p className="text-red-500 mt-1 text-sm">{error.message}</p>}
+      </div>
+  );
+}
+
+// Select component
+function Select({ label, options, error, ...props }) {
+  return (
+      <div>
+        <label className="block text-gray-700 font-medium mb-1">{label}</label>
+        <select
+            {...props}
+            className={`w-full rounded-lg border px-3 py-2 shadow-sm transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                error ? "border-red-500" : "border-gray-300"
+            }`}
+        >
+          <option value=""></option>
+          {options.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+          ))}
+        </select>
+        {error && <p className="text-red-500 mt-1 text-sm">{error.message}</p>}
+      </div>
   );
 }

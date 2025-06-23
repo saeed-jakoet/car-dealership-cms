@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { FiArrowLeft, FiEdit, FiTrash2 } from 'react-icons/fi';
+import { FiArrowLeft, FiEdit } from 'react-icons/fi';
 import ImageSlider from '@/components/ImageSlider';
 import Link from 'next/link';
 import {useAuthFetcher} from "@/utils/useAuthFetcher";
@@ -76,18 +76,11 @@ export default function CarDetailPage() {
             <div className="flex gap-4">
               <button
                 onClick={() => router.push(`/admin/cars/${id}/edit`)}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer"
                 alt="Edit Vehicle"
               >
                 <FiEdit />
                 
-              </button>
-              <button
-                // onClick={handleDelete}
-                className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-              >
-                <FiTrash2 />
-            
               </button>
             </div>
           </div>
