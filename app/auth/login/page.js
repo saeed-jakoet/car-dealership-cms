@@ -3,8 +3,9 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import Cookies from 'js-cookie';
-import axios from 'axios';
 import {useLoginPost} from "@/utils/useAuthFetcher";
+import { HiEye, HiEyeOff } from 'react-icons/hi';
+
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -13,6 +14,8 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const loginPost = useLoginPost();
+  const [showPassword, setShowPassword] = useState(false);
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -62,18 +65,24 @@ export default function LoginPage() {
                 autoComplete="email"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
+            <div className="relative">
               <input
-                type="password"
-                required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pr-10 cur"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
               />
+              <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 cursor-pointer"
+                  tabIndex={-1}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <HiEyeOff size={20} /> : <HiEye size={20} />}
+              </button>
             </div>
           </div>
 
