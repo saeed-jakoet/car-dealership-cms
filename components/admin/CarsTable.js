@@ -77,16 +77,14 @@ export default function AdminCarsCards() {
             </div>
           </Link>
           <div className="p-4 space-y-3">
-            <div className="flex justify-between items-start">
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">{car.name}</h2>
-                <p className="text-sm text-gray-500">
-                  {car.brand} • {car.transmissionType}
-                </p>
-              </div>
-              <span className="text-lg font-semibold text-blue-600">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">{car.name}</h2>
+              <span className="text-lg font-semibold text-blue-600 whitespace-nowrap">
                 R {Number(car.price).toLocaleString()}
               </span>
+              <p className="text-sm text-gray-500">
+                {car.brand} • {car.transmissionType}
+              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-2 text-sm text-gray-700">
