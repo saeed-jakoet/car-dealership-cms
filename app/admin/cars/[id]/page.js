@@ -1,10 +1,12 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { FiArrowLeft, FiEdit } from 'react-icons/fi';
+import { FiArrowLeft, FiEdit, FiTrash } from 'react-icons/fi';
 import ImageSlider from '@/components/ImageSlider';
 import Link from 'next/link';
-import {useAuthFetcher} from "@/utils/useAuthFetcher";
+import {useAuthDelete, useAuthFetcher} from "@/utils/useAuthFetcher";
+import ConfirmModal from "@/utils/confirmModal"
+import { toast } from "react-hot-toast";
 
 export default function CarDetailPage() {
   const { id } = useParams();
@@ -12,8 +14,12 @@ export default function CarDetailPage() {
   const [car, setCar] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const authFetcher = useAuthFetcher();
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
+  const authFetcher = useAuthFetcher();
+  const authDelete = useAuthDelete();
+
+  const TOAST_ID = "car-detail-action";
 
   useEffect(() => {
     const fetchCar = async () => {
@@ -36,6 +42,17 @@ export default function CarDetailPage() {
 
     fetchCar();
   }, [id]);
+
+  const deleteVehicle = async (id, router, authDelete) => {
+    if (window.confirm('Are you sure you want to delete this vehicle?')) {
+      try {
+        await authDelete(`/vehicles/del/${id}`);
+        router.push('/admin');
+      } catch (err) {
+        toast.error("Failed to remove vehicle ❌", {id: TOAST_ID});
+      }
+    }
+  };
 
   if (isLoading) {
     return (
@@ -80,9 +97,29 @@ export default function CarDetailPage() {
                 alt="Edit Vehicle"
               >
                 <FiEdit />
-                
               </button>
+
+              <button
+                  onClick={() => setShowConfirmModal(true)}
+                  className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 cursor-pointer"
+                  alt="Delete Vehicle"
+              >
+                <FiTrash />
+              </button>
+
             </div>
+            <ConfirmModal
+                open={showConfirmModal}
+                title="Confirm Deletion"
+                description="Are you sure you want to delete this vehicle? This action cannot be undone."
+                confirmText="Delete"
+                cancelText="Cancel"
+                onCancel={() => setShowConfirmModal(false)}
+                onConfirm={async () => {
+                  setShowConfirmModal(false);
+                  await deleteVehicle(id, router, authDelete);
+                }}
+            />
           </div>
 
           {/* Image Gallery */}

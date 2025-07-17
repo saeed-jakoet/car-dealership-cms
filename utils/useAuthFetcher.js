@@ -63,3 +63,18 @@ export function useAuthPut() {
         return res.data;
     };
 }
+
+export function useAuthDelete() {
+    const token = useToken();
+    return async (url) => {
+        if (!token) {
+            redirectToAdmin();
+            return;
+        }
+        const fullUrl = url.startsWith("http") ? url : `${BASE_URL}${url}`;
+        const res = await axios.delete(fullUrl, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        return res.data;
+    };
+}

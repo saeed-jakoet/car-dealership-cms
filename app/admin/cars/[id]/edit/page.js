@@ -1,10 +1,10 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import axios from "axios";
 import { useForm } from "react-hook-form";
-import { FiSave, FiXCircle, FiTrash2 } from "react-icons/fi";
+import { FiSave, FiXCircle} from "react-icons/fi";
 import { useAuthPut, useAuthFetcher } from "@/utils/useAuthFetcher";
+import {toast} from "react-hot-toast";
 
 const carBrands = [
   "Acura", "Alfa Romeo", "Aston Martin", "Audi", "Bentley", "BMW", "Bugatti", "Buick",
@@ -27,6 +27,15 @@ const carBodyTypes = [
 export default function EditCarPage() {
   const { id } = useParams();
   const router = useRouter();
+  const [allImages, setAllImages] = useState([]);
+  const [car, setCar] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [selectedIndex, setSelectedIndex] = useState(null);
+
+  const authPut = useAuthPut();
+  const authFetcher = useAuthFetcher();
 
   const {
     register,
@@ -55,14 +64,72 @@ export default function EditCarPage() {
     },
   });
 
-  const [car, setCar] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState("");
-  const [newImages, setNewImages] = useState([]);
 
-  const authPut = useAuthPut();
-  const authFetcher = useAuthFetcher();
+  useEffect(() => {
+    if (car) {
+      const combined = [...(car.imageUrls || [])];
+      setAllImages(combined);
+    }
+  }, [car]);
+
+  const handleImageShuffleSave = async () => {
+    if (!car?._id) return;
+
+    try {
+      const orderedUrls = allImages
+          .map((img) => (typeof img === "string" ? img : img.preview))
+          .filter((url) => typeof url === "string");
+
+      const updated = await authPut(`/vehicles/shuffle/${id}`, {
+        imageUrls: orderedUrls,
+      });
+      console.log('Shuffle response:', updated);
+
+      if (updated && updated.error) {
+        throw new Error(updated.error || "Failed to save image order");
+      }
+
+      toast.success("Image order saved successfully!");
+      setCar(updated);
+    } catch (err) {
+      console.error(err);
+      toast.error("Error while saving image order");
+    }
+  };
+
+  const moveLeft = () => {
+    if (selectedIndex === null || selectedIndex === 0) return;
+    setAllImages(prev => {
+      const newArr = [...prev];
+      [newArr[selectedIndex - 1], newArr[selectedIndex]] = [newArr[selectedIndex], newArr[selectedIndex - 1]];
+      setSelectedIndex(selectedIndex - 1);
+      return newArr;
+    });
+  };
+
+  const moveRight = () => {
+    if (selectedIndex === null || selectedIndex === allImages.length - 1) return;
+    setAllImages(prev => {
+      const newArr = [...prev];
+      [newArr[selectedIndex + 1], newArr[selectedIndex]] = [newArr[selectedIndex], newArr[selectedIndex + 1]];
+      setSelectedIndex(selectedIndex + 1);
+      return newArr;
+    });
+  };
+
+
+  // When new files are selected
+  const handleImageUpload = (files) => {
+    const newFiles = Array.from(files || []);
+
+    const previews = newFiles.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+
+    setAllImages((prev) => [...prev, ...previews]);
+  };
+
 
   useEffect(() => {
     const fetchCar = async () => {
@@ -157,8 +224,6 @@ export default function EditCarPage() {
           </div>
         </div>
 
-        <h1 className="text-2xl font-bold mb-6">Add New Vehicle</h1>
-
         <form
             key={car ? car.id : "new"}
             onSubmit={handleSubmit(onSubmit)}
@@ -166,9 +231,6 @@ export default function EditCarPage() {
         >
           {/* Vehicle Information */}
           <fieldset className="border-b border-gray-200 pb-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-            <legend className="text-xl font-semibold text-gray-700 mb-4 md:col-span-2">
-              Vehicle Information
-            </legend>
 
             {/* Vehicle Name */}
             <Input
@@ -321,42 +383,82 @@ export default function EditCarPage() {
                   type="file"
                   multiple
                   accept="image/*"
-                  onChange={(e) => setNewImages(Array.from(e.target.files || []))}
+                  onChange={(e) => handleImageUpload(e.target.files)}
                   className="hidden"
               />
             </div>
 
-            {/* Preview new images */}
-            {newImages.length > 0 && (
-                <div className="mt-4 flex flex-wrap gap-4">
-                  {newImages.map((file, i) => (
+            {/* Image Order (Click to select, use buttons to move) */}
+            <div className="mt-6">
+              <label className="block text-gray-700 font-semibold mb-2">Image Order (Select and reorder)</label>
+              <div className="flex flex-wrap gap-4">
+                {allImages.map((img, i) => {
+                  const url = typeof img === "string" ? img : img.preview;
+                  return (
                       <img
-                          key={i}
-                          src={URL.createObjectURL(file)}
-                          alt={`Preview ${i + 1}`}
-                          className="w-24 h-24 object-cover rounded-lg border"
+                          key={url}
+                          src={url}
+                          alt={`Image ${i + 1}`}
+                          className={`w-24 h-24 object-cover rounded-lg border cursor-pointer select-none ${
+                              i === selectedIndex ? "border-4 border-blue-500" : "border-gray-300"
+                          }`}
+                          onClick={() => setSelectedIndex(i)}
                       />
-                  ))}
-                </div>
-            )}
+                  );
+                })}
+              </div>
 
-            {/* Existing images */}
-            {car?.images?.length > 0 && (
-                <div className="mt-6">
-                  <label className="block text-gray-700 font-semibold mb-2">Current Images</label>
-                  <div className="flex flex-wrap gap-4">
-                    {car.images.map((img, i) => (
-                        <img
-                            key={i}
-                            src={img}
-                            alt={`Current ${i + 1}`}
-                            className="w-24 h-24 object-cover rounded-lg border"
-                        />
-                    ))}
+              {selectedIndex !== null && (
+                  <div className="mt-6 flex items-center justify-center space-x-8">
+                    <button
+                        type="button"
+                        onClick={() => {
+                          if (selectedIndex > 0) {
+                            setAllImages(prev => {
+                              const newArr = [...prev];
+                              [newArr[selectedIndex - 1], newArr[selectedIndex]] = [newArr[selectedIndex], newArr[selectedIndex - 1]];
+                              setSelectedIndex(selectedIndex - 1);
+                              return newArr;
+                            });
+                          }
+                        }}
+                        disabled={selectedIndex === 0}
+                        className="flex items-center cursor-pointer  px-6 py-3 bg-gray-100 rounded-xl shadow-sm hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition duration-300 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium text-gray-700"
+                    >
+                      Move Left
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={handleImageShuffleSave}
+                        className="px-6 py-3 bg-blue-600 cursor-pointer text-white rounded-xl shadow-md hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-400 transition duration-300 font-semibold"
+                    >
+                      Save Image Order
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => {
+                          if (selectedIndex < allImages.length - 1) {
+                            setAllImages(prev => {
+                              const newArr = [...prev];
+                              [newArr[selectedIndex + 1], newArr[selectedIndex]] = [newArr[selectedIndex], newArr[selectedIndex + 1]];
+                              setSelectedIndex(selectedIndex + 1);
+                              return newArr;
+                            });
+                          }
+                        }}
+                        disabled={selectedIndex === allImages.length - 1}
+                        className="flex items-center cursor-pointer px-6 py-3 bg-gray-100 rounded-xl shadow-sm hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition duration-300 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium text-gray-700"
+                    >
+                      Move Right
+                    </button>
+
                   </div>
-                </div>
-            )}
+              )}
+            </div>
           </div>
+
 
           {/* Submit */}
           <button
