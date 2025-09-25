@@ -1,9 +1,8 @@
 
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import CustomToaster from "@/components/Toast";
+import { Toast, TokenProvider } from "@/src/components";
 import { cookies } from "next/headers";
-import TokenProvider from "@/components/TokenProvider";
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -30,7 +29,7 @@ export default async function RootLayout({ children }) {
         <TokenProvider token={token}>
             {children}
         </TokenProvider>
-        <CustomToaster />
+        <Toast />
         </body>
         </html>
     );

@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { mutate } from 'swr';
-import { useAuthPost } from "../utils/useAuthFetcher";
+import { useAuthPost } from "@/src/lib";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -52,7 +52,7 @@ export default function NewReviewModal({ isOpen, onClose }) {
             if (response.status === 200) {
                 toast.success("Review submitted!");
                 onClose();
-                reset();  l
+                reset();  
 
                 // ✅ Revalidate the cache to ensure it's accurate
                await mutate(`${BASE_URL}/reviews/all`);
@@ -232,4 +232,3 @@ export default function NewReviewModal({ isOpen, onClose }) {
         </Transition>
     );
 }
-

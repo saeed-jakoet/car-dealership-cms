@@ -1,42 +1,40 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import Cookies from 'js-cookie';
-import {useLoginPost} from "@/utils/useAuthFetcher";
-import { HiEye, HiEyeOff } from 'react-icons/hi';
-
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import Cookies from "js-cookie";
+import { useLoginPost } from "@/src/lib";
+import { HiEye, HiEyeOff } from "react-icons/hi";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const loginPost = useLoginPost();
   const [showPassword, setShowPassword] = useState(false);
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setIsLoading(true);
 
     try {
-      const response = await loginPost('/auth/login', { email, password });
-      const token = response.data.accessToken;
-      Cookies.set('accessToken', token);
-      router.push('/admin');
+      const response = await loginPost("/auth/login", { email, password });
+      const token = response.data.token;  
+      Cookies.set("accessToken", token);
+      router.push("/admin");
     } catch (err) {
       if (err.response?.data?.message) {
         setError(err.response.data.message);
       } else {
-        setError('An unexpected error occurred');
+        setError("An unexpected error occurred");
       }
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -49,7 +47,7 @@ export default function LoginPage() {
             Secure administrator login
           </p>
         </div>
-        
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
@@ -67,39 +65,37 @@ export default function LoginPage() {
             </div>
             <div className="relative">
               <input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pr-10 cur"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="current-password"
+                type={showPassword ? "text" : "password"}
+                required
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pr-10 cur"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
               />
               <button
-                  type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 cursor-pointer"
-                  tabIndex={-1}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 cursor-pointer"
+                tabIndex={-1}
+                aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? <HiEyeOff size={20} /> : <HiEye size={20} />}
               </button>
             </div>
           </div>
 
-          {error && (
-            <p className="text-red-500 text-sm text-center">{error}</p>
-          )}
+          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
           <button
             type="submit"
             disabled={isLoading}
             className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
-              isLoading 
-                ? 'bg-gray-400 cursor-not-allowed' 
-                : 'bg-blue-600 hover:bg-blue-700'
+              isLoading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700"
             }`}
           >
-            {isLoading ? 'Authenticating...' : 'Sign in'}
+            {isLoading ? "Authenticating..." : "Sign in"}
           </button>
         </form>
 

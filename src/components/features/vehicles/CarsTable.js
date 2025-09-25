@@ -10,7 +10,7 @@ import {
 } from "react-icons/fi";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
-import { useAuthFetcher, useAuthPut } from "@/utils/useAuthFetcher";
+import { useAuthFetcher, useAuthPut } from "@/src/lib";
 import { BsFuelPumpFill } from "react-icons/bs";
 import { BiSolidColorFill } from "react-icons/bi";
 import { SlSpeedometer } from "react-icons/sl";
@@ -18,7 +18,7 @@ import { SlSpeedometer } from "react-icons/sl";
 
 const TOAST_ID = "admin-action";
 
-export default function AdminCarsCards() {
+export default function CarsTable() {
   const fetcher = useAuthFetcher();
   const authPut = useAuthPut();
 

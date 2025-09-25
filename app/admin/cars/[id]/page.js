@@ -2,10 +2,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { FiArrowLeft, FiEdit, FiTrash } from 'react-icons/fi';
-import ImageSlider from '@/components/ImageSlider';
+import { ImageSlider, ConfirmModal } from '@/src/components';
+import { useAuthDelete, useAuthFetcher } from "@/src/lib";
 import Link from 'next/link';
-import {useAuthDelete, useAuthFetcher} from "@/utils/useAuthFetcher";
-import ConfirmModal from "@/utils/confirmModal"
 import { toast } from "react-hot-toast";
 
 export default function CarDetailPage() {

@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import {useAuthPost} from "@/utils/useAuthFetcher";
+import { useAuthPost } from "@/src/lib";
 
 const carBrands = [
   "Acura",
@@ -504,7 +504,7 @@ export default function CarForm() {
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 12v8m0-8l3-3m-3 3l-3-3"
+                  d="M4 16v2a2 2 0 002 2h12a2 0 002-2v-2M12 12v8m0-8l3-3m-3 3l-3-3"
                 ></path>
               </svg>
               Choose Images

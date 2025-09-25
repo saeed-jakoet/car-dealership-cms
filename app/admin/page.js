@@ -1,8 +1,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import AdminCarsTable from '@/components/admin/CarsTable';
+import { CarsTable, Button } from '@/src/components';
 import Link from 'next/link';
-import { Button } from '@/components/ui/Button';
 
 
 export default async function AdminCarsPage() {
@@ -26,7 +25,7 @@ export default async function AdminCarsPage() {
         </Link>
       </div>
 
-      <AdminCarsTable token={token.value} />
+      <CarsTable token={token.value} />
     </div>
   );
 }

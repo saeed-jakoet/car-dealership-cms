@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useToken } from "@/components/TokenProvider";
+import { useToken } from "@/src/hooks";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -56,6 +56,7 @@ export function useAuthPut() {
             redirectToAdmin();
             return;
         }
+        console.log(token)
         const fullUrl = url.startsWith("http") ? url : `${BASE_URL}${url}`;
         const res = await axios.put(fullUrl, data, {
             headers: { Authorization: `Bearer ${token}` },

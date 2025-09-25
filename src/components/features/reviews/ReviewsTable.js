@@ -1,8 +1,8 @@
 import useSWR, { mutate } from 'swr';
-import {useAuthFetcher} from "@/utils/useAuthFetcher";
+import { useAuthFetcher } from "@/src/lib";
 import { toast } from 'react-hot-toast';
 
-export default function AdminReviews() {
+export default function ReviewsTable() {
     const fetcher = useAuthFetcher();
     const { data: reviews, error, isLoading } = useSWR("/reviews/all", fetcher);
 

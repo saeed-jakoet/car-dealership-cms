@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { FiSave, FiXCircle} from "react-icons/fi";
-import { useAuthPut, useAuthFetcher } from "@/utils/useAuthFetcher";
+import { useAuthPut, useAuthFetcher } from "@/src/lib";
 import {toast} from "react-hot-toast";
 
 const carBrands = [
@@ -67,21 +67,32 @@ export default function EditCarPage() {
 
   useEffect(() => {
     if (car) {
-      const combined = [...(car.imageUrls || [])];
-      setAllImages(combined);
+      // Create a combined array of all image URLs
+      const allUrls = car.allImageUrls || [];
+      setAllImages(allUrls);
     }
   }, [car]);
 
   const handleImageShuffleSave = async () => {
-    if (!car?._id) return;
+    if (!car?._id || !car?.imagePublicIds) return;
 
     try {
-      const orderedUrls = allImages
-          .map((img) => (typeof img === "string" ? img : img.preview))
-          .filter((url) => typeof url === "string");
+      // Create mapping from URLs to their original indices based on car.allImageUrls
+      const originalUrls = car.allImageUrls || [];
+      const publicIds = car.imagePublicIds || [];
+      
+      // Map current order of URLs back to their publicIds
+      const orderedPublicIds = allImages
+        .map((imgUrl) => {
+          const urlIndex = originalUrls.findIndex(url => url === imgUrl);
+          return urlIndex !== -1 ? publicIds[urlIndex] : null;
+        })
+        .filter(id => id !== null);
+
+      console.log('Sending publicIds:', orderedPublicIds);
 
       const updated = await authPut(`/vehicles/shuffle/${id}`, {
-        imageUrls: orderedUrls,
+        publicIds: orderedPublicIds,
       });
       console.log('Shuffle response:', updated);
 
@@ -91,6 +102,11 @@ export default function EditCarPage() {
 
       toast.success("Image order saved successfully!");
       setCar(updated);
+      
+      // Update allImages with the new order from the response
+      if (updated.allImageUrls) {
+        setAllImages(updated.allImageUrls);
+      }
     } catch (err) {
       console.error(err);
       toast.error("Error while saving image order");
@@ -135,6 +151,9 @@ export default function EditCarPage() {
     const fetchCar = async () => {
       try {
         const data = await authFetcher(`/vehicles/${id}`);
+        console.log('Fetched car data:', data);
+        console.log('imagePublicIds:', data.imagePublicIds);
+        console.log('allImageUrls:', data.allImageUrls);
         setCar(data);
         reset({
           name: data.name || "",

@@ -1,8 +1,6 @@
 'use client';
 import { useState } from 'react';
-import AdminReviews from '@/components/admin/reviewsTable';
-import { Button } from '@/components/ui/Button';
-import NewReviewModal from '@/components/newReviewModal';
+import { ReviewsTable, Button, NewReviewModal } from '@/src/components';
 
 export default function AdminReviewsPage() {
     const [modalOpen, setModalOpen] = useState(false);
@@ -19,7 +17,7 @@ export default function AdminReviewsPage() {
                 </Button>
             </div>
 
-            <AdminReviews reviews={[]} />
+            <ReviewsTable reviews={[]} />
 
             <NewReviewModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
         </div>

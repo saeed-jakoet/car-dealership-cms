@@ -1,12 +1,6 @@
 'use client';
 
-import { createContext, useContext } from 'react';
-
-const TokenContext = createContext(null);
-
-export function useToken() {
-    return useContext(TokenContext);
-}
+import { TokenContext } from '@/src/hooks';
 
 export default function TokenProvider({ token, children }) {
     return (
