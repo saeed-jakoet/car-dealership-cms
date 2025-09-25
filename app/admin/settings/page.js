@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Tab } from '@headlessui/react';
-import { ExclamationIcon } from '@/components';
+import { ExclamationIcon } from '../../components';
 import Cookies from 'js-cookie';
 import { CheckIcon } from '@heroicons/react/24/solid';
 

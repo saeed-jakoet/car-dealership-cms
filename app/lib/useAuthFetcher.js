@@ -56,7 +56,6 @@ export function useAuthPut() {
             redirectToAdmin();
             return;
         }
-        console.log(token)
         const fullUrl = url.startsWith("http") ? url : `${BASE_URL}${url}`;
         const res = await axios.put(fullUrl, data, {
             headers: { Authorization: `Bearer ${token}` },

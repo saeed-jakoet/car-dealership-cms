@@ -1,8 +1,8 @@
 "use client";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
-import useSWR , {mutate} from "swr";
-import { useAuthFetcher, useAuthPut } from "@/app/lib";
+import useSWR, { mutate } from "swr";
+import { useAuthFetcher, useAuthPut } from "../../lib";
 
 export default function InboxPage() {
   const [selectedRequest, setSelectedRequest] = useState(null);

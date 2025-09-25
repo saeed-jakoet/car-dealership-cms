@@ -1,5 +1,5 @@
 import useSWR, { mutate } from 'swr';
-import { useAuthFetcher } from "@/app/lib";
+import { useAuthFetcher } from "../../../lib";
 import { toast } from 'react-hot-toast';
 
 export default function ReviewsTable() {

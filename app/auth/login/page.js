@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Cookies from "js-cookie";
-import { useLoginPost } from "@/app/lib";
+import { useLoginPost } from "../../lib";
 import { HiEye, HiEyeOff } from "react-icons/hi";
 
 export default function LoginPage() {

@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { FiSave, FiXCircle} from "react-icons/fi";
-import { useAuthPut, useAuthFetcher } from "@/app/lib";
+import { useAuthPut, useAuthFetcher } from "../../../../lib";
 import {toast} from "react-hot-toast";
 
 const carBrands = [
@@ -93,12 +93,9 @@ export default function EditCarPage() {
         })
         .filter(id => id !== null);
 
-      console.log('Sending publicIds:', orderedPublicIds);
-
       const updated = await authPut(`/vehicles/shuffle/${id}`, {
         publicIds: orderedPublicIds,
       });
-      console.log('Shuffle response:', updated);
 
       if (updated && updated.error) {
         throw new Error(updated.error || "Failed to save image order");
@@ -192,9 +189,7 @@ export default function EditCarPage() {
       }, 300);
 
       // Upload without timeout for large files
-      console.log('Starting upload...');
       const response = await authPut(`/vehicles/images/${id}`, formData);
-      console.log('Upload response received:', response);
       
       // Clear progress interval immediately when API call completes
       if (progressInterval) {
@@ -206,7 +201,6 @@ export default function EditCarPage() {
       setUploadProgress(100);
       
       if (response && response.data) {
-        console.log('Processing successful response...');
         // Update the car state with new image data
         setCar(response.data);
         toast.success(`${pendingImages.length} image(s) uploaded successfully!`);
@@ -252,9 +246,6 @@ export default function EditCarPage() {
     const fetchCar = async () => {
       try {
         const data = await authFetcher(`/vehicles/${id}`);
-        console.log('Fetched car data:', data);
-        console.log('imagePublicIds:', data.imagePublicIds);
-        console.log('allImageUrls:', data.allImageUrls);
         setCar(data);
         reset({
           name: data.name || "",
@@ -490,7 +481,7 @@ export default function EditCarPage() {
                   </svg>
                   <div className="text-green-700 text-sm">
                     <div className="font-medium">Images uploaded successfully!</div>
-                    <div className="text-xs mt-1">You can now use "Save Changes" to save vehicle details, or add more images.</div>
+                    <div className="text-xs mt-1">You can now use &quot;Save Changes&quot; to save vehicle details, or add more images.</div>
                   </div>
                 </div>
               </div>
