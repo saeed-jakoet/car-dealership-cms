@@ -10,7 +10,7 @@ import {
 } from "react-icons/fi";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
-import { useAuthFetcher, useAuthPut } from "@/src/lib";
+import { useAuthFetcher, useAuthPut } from "@/app/lib";
 import { BsFuelPumpFill } from "react-icons/bs";
 import { BiSolidColorFill } from "react-icons/bi";
 import { SlSpeedometer } from "react-icons/sl";

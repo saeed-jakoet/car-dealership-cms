@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Cookies from "js-cookie";
-import { useLoginPost } from "@/src/lib";
+import { useLoginPost } from "@/app/lib";
 import { HiEye, HiEyeOff } from "react-icons/hi";
 
 export default function LoginPage() {
@@ -22,7 +22,7 @@ export default function LoginPage() {
 
     try {
       const response = await loginPost("/auth/login", { email, password });
-      const token = response.data.token;  
+      const token = response.data.token;    
       Cookies.set("accessToken", token);
       router.push("/admin");
     } catch (err) {

@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { mutate } from 'swr';
-import { useAuthPost } from "@/src/lib";
+import { useAuthPost } from "@/app/lib";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 

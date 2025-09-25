@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import useSWR , {mutate} from "swr";
-import { useAuthFetcher, useAuthPut } from "@/src/lib";
+import { useAuthFetcher, useAuthPut } from "@/app/lib";
 
 export default function InboxPage() {
   const [selectedRequest, setSelectedRequest] = useState(null);

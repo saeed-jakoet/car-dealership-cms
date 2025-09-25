@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { CarsTable, Button } from '@/src/components';
+import { CarsTable, Button } from '@/app/components';
 import Link from 'next/link';
 
 

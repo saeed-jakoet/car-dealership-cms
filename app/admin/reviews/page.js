@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { ReviewsTable, Button, NewReviewModal } from '@/src/components';
+import { ReviewsTable, Button, NewReviewModal } from '@/app/components';
 
 export default function AdminReviewsPage() {
     const [modalOpen, setModalOpen] = useState(false);

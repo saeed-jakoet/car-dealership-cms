@@ -1,7 +1,7 @@
 
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Toast, TokenProvider } from "@/src/components";
+import { Toast, TokenProvider } from "@/app/components";
 import { cookies } from "next/headers";
 
 const geistSans = Geist({

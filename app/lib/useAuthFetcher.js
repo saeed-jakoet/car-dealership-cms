@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useToken } from "@/src/hooks";
+import { useToken } from "@/app/hooks";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 

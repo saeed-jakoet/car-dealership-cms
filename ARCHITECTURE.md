@@ -1,18 +1,17 @@
 # Car Dealership CMS - Clean Architecture
-
-This is a Next.js application for managing a car dealership with a clean, organized folder structure.
+### Feature-Based Organization**
+- Components are organized by feature (vehicles, reviews, auth)
+- Each feature has its own folder under `app/components/features/`
+- Shared components are in `app/components/ui/`s is a Next.js application for managing a car dealership with a clean, organized folder structure.
 
 ## 📁 Project Structure
 
 ```
 car-dealer-ship-cms/
-├── app/                    # Next.js App Router pages
+├── app/                    # Next.js App Router pages & components
 │   ├── admin/             # Admin dashboard routes
 │   ├── auth/              # Authentication pages
 │   ├── (public)/          # Public routes
-│   ├── layout.js          # Root layout with providers
-│   └── globals.css        # Global styles
-├── src/                   # Source code (new organized structure)
 │   ├── components/        # All React components
 │   │   ├── ui/           # Reusable UI components
 │   │   │   ├── Button.js
@@ -29,8 +28,6 @@ car-dealer-ship-cms/
 │   │   │   ├── reviews/
 │   │   │   │   ├── ReviewsTable.js
 │   │   │   │   └── NewReviewModal.js
-│   │   │   ├── auth/     # Auth-specific components
-│   │   │   └── dashboard/ # Dashboard components
 │   │   ├── providers/    # Context providers
 │   │   │   ├── TokenProvider.js
 │   │   │   └── Providers.js
@@ -62,9 +59,9 @@ car-dealer-ship-cms/
 ### 3. **Consistent Import Patterns**
 ```javascript
 // ✅ Good - Import from organized structure
-import { Button, Toast } from '@/src/components';
-import { useToken } from '@/src/hooks';
-import { useAuthFetcher } from '@/src/lib';
+import { Button, Toast } from '@/app/components';
+import { useToken } from '@/app/hooks';
+import { useAuthFetcher } from '@/app/lib';
 
 // ❌ Bad - Direct file imports
 import Button from '@/components/ui/Button';
@@ -105,17 +102,17 @@ yarn build
 
 1. **UI Components** (buttons, inputs, modals):
    ```
-   src/components/ui/NewComponent.js
+   app/components/ui/NewComponent.js
    ```
 
 2. **Feature Components** (specific to vehicles, reviews, etc.):
    ```
-   src/components/features/[feature]/ComponentName.js
+   app/components/features/[feature]/ComponentName.js
    ```
 
 3. **Layout Components** (sidebars, headers, footers):
    ```
-   src/components/layout/ComponentName.js
+   app/components/layout/ComponentName.js
    ```
 
 ### Naming Conventions
@@ -127,13 +124,13 @@ yarn build
 Always add new components to the appropriate index.js file:
 
 ```javascript
-// src/components/index.js
+// app/components/index.js
 export { default as NewComponent } from './ui/NewComponent';
 
-// src/hooks/index.js
+// app/hooks/index.js
 export { useNewHook } from './useNewHook';
 
-// src/lib/index.js
+// app/lib/index.js
 export { newUtility } from './newUtility';
 ```
 
@@ -181,8 +178,8 @@ The app integrates with a backend API for:
 
 If you're migrating from the old structure:
 
-1. **Components**: All moved from `/components/` to `/src/components/`
-2. **Utils**: Moved from `/utils/` to `/src/lib/`
+1. **Components**: All moved from `/components/` to `/app/components/`
+2. **Utils**: Moved from `/utils/` to `/app/lib/`
 3. **Imports**: Update all imports to use new paths
 4. **Exports**: Use barrel exports from index files
 
@@ -194,8 +191,8 @@ import { useAuthFetcher } from '@/utils/useAuthFetcher';
 
 ### After
 ```javascript
-import { CarForm } from '@/src/components';
-import { useAuthFetcher } from '@/src/lib';
+import { CarForm } from '@/app/components';
+import { useAuthFetcher } from '@/app/lib';
 ```
 
 ## 🐛 Troubleshooting

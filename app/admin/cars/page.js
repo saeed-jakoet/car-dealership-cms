@@ -1,8 +1,8 @@
 'use client';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { CarsTable, Button } from '@/src/components';
-import { useToken } from '@/src/hooks';
+import { CarsTable, Button } from '@/app/components';
+import { useToken } from '@/app/hooks';
 import Link from 'next/link';
 
 export default function AdminCarsPage() {

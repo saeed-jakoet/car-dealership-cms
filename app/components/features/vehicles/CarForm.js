@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useAuthPost } from "@/src/lib";
+import { useAuthPost } from "@/app/lib";
 
 const carBrands = [
   "Acura",

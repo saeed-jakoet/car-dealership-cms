@@ -1,6 +1,6 @@
 'use client';
 
-import { TokenContext } from '@/src/hooks';
+import { TokenContext } from '@/app/hooks';
 
 export default function TokenProvider({ token, children }) {
     return (

@@ -2,8 +2,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { FiArrowLeft, FiEdit, FiTrash } from 'react-icons/fi';
-import { ImageSlider, ConfirmModal } from '@/src/components';
-import { useAuthDelete, useAuthFetcher } from "@/src/lib";
+import { ImageSlider, ConfirmModal } from '@/app/components';
+import { useAuthDelete, useAuthFetcher } from "@/app/lib";
 import Link from 'next/link';
 import { toast } from "react-hot-toast";
 

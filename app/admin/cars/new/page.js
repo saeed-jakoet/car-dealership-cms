@@ -1,5 +1,5 @@
 'use client';
-import { CarForm } from '@/src/components';
+import { CarForm } from '@/app/components';
 import { useRouter } from 'next/navigation';
 
 export default function NewCarPage() {
