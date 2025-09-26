@@ -37,6 +37,7 @@ export default function EditCarPage() {
   const [pendingImages, setPendingImages] = useState([]);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [hasUploadedImages, setHasUploadedImages] = useState(false);
+  const dragIndexRef = useRef(null);
 
   const authPut = useAuthPut();
   const authFetcher = useAuthFetcher();
@@ -101,12 +102,13 @@ export default function EditCarPage() {
         throw new Error(updated.error || "Failed to save image order");
       }
 
+      const updatedCar = updated?.data || updated;
       toast.success("Image order saved successfully!");
-      setCar(updated);
-      
+      setCar(updatedCar);
+
       // Update allImages with the new order from the response
-      if (updated.allImageUrls) {
-        setAllImages(updated.allImageUrls);
+      if (updatedCar?.allImageUrls) {
+        setAllImages(updatedCar.allImageUrls);
       }
     } catch (err) {
       console.error(err);
@@ -131,6 +133,50 @@ export default function EditCarPage() {
       [newArr[selectedIndex + 1], newArr[selectedIndex]] = [newArr[selectedIndex], newArr[selectedIndex + 1]];
       setSelectedIndex(selectedIndex + 1);
       return newArr;
+    });
+  };
+
+  // Drag & Drop handlers for more intuitive reordering
+  const handleDragStart = (index) => {
+    dragIndexRef.current = index;
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (dropIndex) => {
+    const fromIndex = dragIndexRef.current;
+    if (fromIndex === null || fromIndex === undefined || fromIndex === dropIndex) return;
+    setAllImages(prev => {
+      const updated = [...prev];
+      const [moved] = updated.splice(fromIndex, 1);
+      updated.splice(dropIndex, 0, moved);
+      setSelectedIndex(dropIndex);
+      return updated;
+    });
+    dragIndexRef.current = null;
+  };
+
+  const moveToFirst = () => {
+    if (selectedIndex === null || selectedIndex === 0) return;
+    setAllImages(prev => {
+      const updated = [...prev];
+      const [moved] = updated.splice(selectedIndex, 1);
+      updated.unshift(moved);
+      setSelectedIndex(0);
+      return updated;
+    });
+  };
+
+  const moveToLast = () => {
+    if (selectedIndex === null || selectedIndex === allImages.length - 1) return;
+    setAllImages(prev => {
+      const updated = [...prev];
+      const [moved] = updated.splice(selectedIndex, 1);
+      updated.push(moved);
+      setSelectedIndex(updated.length - 1);
+      return updated;
     });
   };
 
@@ -639,69 +685,38 @@ export default function EditCarPage() {
 
             {/* Image Order (Click to select, use buttons to move) */}
             <div className="mt-6">
-              <label className="block text-gray-700 font-semibold mb-2">Image Order (Select and reorder)</label>
+              <label className="block text-gray-700 font-semibold mb-2">Image Order</label>
+              <p className="text-xs text-gray-500 mb-3">Drag and drop to reorder, then save.</p>
               <div className="flex flex-wrap gap-4">
                 {allImages.map((imgUrl, i) => (
-                  <img
-                      key={`${imgUrl}-${i}`}
+                  <div
+                    key={`${imgUrl}-${i}`}
+                    className={`relative group rounded-lg border ${i === selectedIndex ? "border-blue-500 ring-2 ring-blue-200" : "border-gray-300"}`}
+                    draggable
+                    onDragStart={() => handleDragStart(i)}
+                    onDragOver={handleDragOver}
+                    onDrop={() => handleDrop(i)}
+                    onClick={() => setSelectedIndex(i)}
+                    title="Drag to reorder"
+                  >
+                    <img
                       src={imgUrl}
                       alt={`Image ${i + 1}`}
-                      className={`w-24 h-24 object-cover rounded-lg border cursor-pointer select-none ${
-                          i === selectedIndex ? "border-4 border-blue-500" : "border-gray-300"
-                      }`}
-                      onClick={() => setSelectedIndex(i)}
-                  />
+                      className="w-24 h-24 object-cover rounded-lg select-none cursor-move"
+                    />
+                    <span className="absolute top-1 left-1 text-[10px] px-1.5 py-0.5 rounded bg-black/70 text-white">{i + 1}</span>
+                  </div>
                 ))}
               </div>
-
-              {selectedIndex !== null && (
-                  <div className="mt-6 flex items-center justify-center space-x-8">
-                    <button
-                        type="button"
-                        onClick={() => {
-                          if (selectedIndex > 0) {
-                            setAllImages(prev => {
-                              const newArr = [...prev];
-                              [newArr[selectedIndex - 1], newArr[selectedIndex]] = [newArr[selectedIndex], newArr[selectedIndex - 1]];
-                              setSelectedIndex(selectedIndex - 1);
-                              return newArr;
-                            });
-                          }
-                        }}
-                        disabled={selectedIndex === 0}
-                        className="flex items-center cursor-pointer  px-6 py-3 bg-gray-100 rounded-xl shadow-sm hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition duration-300 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium text-gray-700"
-                    >
-                      Move Left
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={handleImageShuffleSave}
-                        className="px-6 py-3 bg-blue-600 cursor-pointer text-white rounded-xl shadow-md hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-400 transition duration-300 font-semibold"
-                    >
-                      Save Image Order
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={() => {
-                          if (selectedIndex < allImages.length - 1) {
-                            setAllImages(prev => {
-                              const newArr = [...prev];
-                              [newArr[selectedIndex + 1], newArr[selectedIndex]] = [newArr[selectedIndex], newArr[selectedIndex + 1]];
-                              setSelectedIndex(selectedIndex + 1);
-                              return newArr;
-                            });
-                          }
-                        }}
-                        disabled={selectedIndex === allImages.length - 1}
-                        className="flex items-center cursor-pointer px-6 py-3 bg-gray-100 rounded-xl shadow-sm hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition duration-300 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium text-gray-700"
-                    >
-                      Move Right
-                    </button>
-
-                  </div>
-              )}
+              <div className="mt-6 flex items-center justify-center">
+                <button
+                  type="button"
+                  onClick={handleImageShuffleSave}
+                  className="px-5 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-400 transition font-semibold"
+                >
+                  Save Image Order
+                </button>
+              </div>
             </div>
           </div>
 
