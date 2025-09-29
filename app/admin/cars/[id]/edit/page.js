@@ -203,8 +203,6 @@ export default function EditCarPage() {
         });
       }, 300);
 
-      console.log("formdata:", formData);
-
       // Upload without timeout for large files
       const response = await authPut(`/vehicles/images/${id}`, formData);
 
@@ -260,23 +258,39 @@ export default function EditCarPage() {
   };
 
   // Handle CarForm submission
-  const handleCarFormSubmit = async (data) => {
+  const handleCarFormSubmit = async (formData) => {
     setIsSubmitting(true);
     setError("");
     try {
+      // Convert FormData to regular object for edit mode
+      const data = {};
+      for (const [key, value] of formData.entries()) {
+        if (key === "vehicleDetails") {
+          data.vehicleDetails = JSON.parse(value);
+        } else if (key === "extras") {
+          data.extras = JSON.parse(value);
+        } else {
+          data[key] = value;
+        }
+      }
+
       const formattedData = {
-        ...data,
-        price: String(data.price),
-        year: String(data.year),
+        name: data.name,
+        used: data.used === "true",
         mileage: String(data.mileage),
-        previousOwners: Number(data.previousOwners),
-        extras: data.extras ? data.extras.split(",").map((e) => e.trim()) : [],
+        transmissionType: data.transmissionType,
+        price: String(data.price),
+        fuelType: data.fuelType,
+        year: String(data.year),
+        brand: data.brand,
+        sellerComments: data.sellerComments || "",
+        extras: data.extras || [],
         vehicleDetails: {
-          colour: data.colour,
-          bodyType: data.bodyType,
-          previousOwners: Number(data.previousOwners),
-          serviceHistory: data.serviceHistory,
-          warranty: data.warranty,
+          previousOwners: parseInt(data.vehicleDetails?.previousOwners) || 0,
+          serviceHistory: data.vehicleDetails?.serviceHistory || "",
+          colour: data.vehicleDetails?.colour || "",
+          bodyType: data.vehicleDetails?.bodyType || "",
+          warranty: data.vehicleDetails?.warranty || "",
         },
       };
 
@@ -284,6 +298,7 @@ export default function EditCarPage() {
       setHasUploadedImages(false); // Reset upload state
       router.push(`/admin/cars/${id}`);
     } catch (err) {
+      console.error("Edit form error:", err);
       setError("Failed to update vehicle");
       throw err; // Let CarForm handle the error display
     } finally {
