@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-hot-toast";
 
@@ -28,8 +28,10 @@ export default function CarForm({
   submitButtonText = "Save Vehicle",
   showCancelButton = false,
   onCancel,
-  isEditMode = false
+  isEditMode = false,
+  showImageUpload = false
 }) {
+  const [selectedImages, setSelectedImages] = useState([]);
   const {
     register,
     handleSubmit,
@@ -77,12 +79,49 @@ export default function CarForm({
     }
   }, [initialData, reset]);
 
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files);
+    setSelectedImages(files);
+  };
+
+  const removeImage = (index) => {
+    setSelectedImages(prev => prev.filter((_, i) => i !== index));
+  };
+
   const onFormSubmit = async (data) => {
     try {
-      await onSubmit(data);
+      // Create FormData for multipart form submission
+      const formData = new FormData();
+      
+      // Add regular form fields
+      Object.keys(data).forEach(key => {
+        if (key === 'extras') {
+          formData.append(key, JSON.stringify(data[key].split(',').map(s => s.trim()).filter(s => s)));
+        } else if (['colour', 'bodyType', 'previousOwners', 'serviceHistory', 'warranty'].includes(key)) {
+          // These go into vehicleDetails
+          if (!formData.has('vehicleDetails')) {
+            formData.append('vehicleDetails', JSON.stringify({}));
+          }
+          const vehicleDetails = JSON.parse(formData.get('vehicleDetails') || '{}');
+          vehicleDetails[key] = data[key];
+          formData.set('vehicleDetails', JSON.stringify(vehicleDetails));
+        } else {
+          formData.append(key, data[key]);
+        }
+      });
+      
+      // Add images if any
+      if (showImageUpload && selectedImages.length > 0) {
+        selectedImages.forEach(image => {
+          formData.append('file', image);
+        });
+      }
+      
+      await onSubmit(formData);
       if (!isEditMode) {
         toast.success("Vehicle saved successfully!");
         reset();
+        setSelectedImages([]);
       }
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -196,11 +235,11 @@ export default function CarForm({
               placeholder="1"
             />
 
-            <Input 
-              label="Warranty" 
-              {...register("warranty", { required: "Warranty information is required" })} 
+            <Select
+              label="Warranty"
+              {...register("warranty", { required: "Warranty information is required" })}
+              options={["Yes", "No"]}
               error={errors.warranty}
-              placeholder="2 years remaining"
             />
 
             <div className="flex items-center space-x-3">
@@ -248,6 +287,55 @@ export default function CarForm({
             </div>
           </div>
         </div>
+
+        {/* Image Upload */}
+        {showImageUpload && (
+          <div className="bg-white border border-gray-100 rounded-lg p-8 shadow-sm">
+            <h3 className="text-lg font-medium text-gray-900 mb-6 pb-3 border-b border-gray-100">
+              Vehicle Images
+            </h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Upload Images
+                </label>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all duration-200 text-sm"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Select multiple images for the vehicle
+                </p>
+              </div>
+              
+              {/* Image Previews */}
+              {selectedImages.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {selectedImages.map((image, index) => (
+                    <div key={index} className="relative">
+                      <img
+                        src={URL.createObjectURL(image)}
+                        alt={`Preview ${index + 1}`}
+                        className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Submit Section */}
         <div className="flex justify-end space-x-4 pt-6">
