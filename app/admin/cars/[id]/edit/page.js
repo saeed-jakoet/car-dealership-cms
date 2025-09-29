@@ -203,6 +203,8 @@ export default function EditCarPage() {
         });
       }, 300);
 
+      console.log("formdata:", formData);
+
       // Upload without timeout for large files
       const response = await authPut(`/vehicles/images/${id}`, formData);
 
@@ -351,7 +353,6 @@ export default function EditCarPage() {
 
   return (
     <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-8 my-10">
-
       <div className="space-y-8">
         <CarForm
           initialData={car}

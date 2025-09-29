@@ -93,24 +93,33 @@ export default function CarForm({
       // Create FormData for multipart form submission
       const formData = new FormData();
       
-      // Add regular form fields
-      Object.keys(data).forEach(key => {
-        if (key === 'extras') {
-          formData.append(key, JSON.stringify(data[key].split(',').map(s => s.trim()).filter(s => s)));
-        } else if (['colour', 'bodyType', 'previousOwners', 'serviceHistory', 'warranty'].includes(key)) {
-          // These go into vehicleDetails
-          if (!formData.has('vehicleDetails')) {
-            formData.append('vehicleDetails', JSON.stringify({}));
-          }
-          const vehicleDetails = JSON.parse(formData.get('vehicleDetails') || '{}');
-          vehicleDetails[key] = data[key];
-          formData.set('vehicleDetails', JSON.stringify(vehicleDetails));
-        } else {
-          formData.append(key, data[key]);
-        }
-      });
+      // Add basic fields that match API exactly
+      formData.append("name", data.name);
+      formData.append("used", data.used);
+      formData.append("mileage", data.mileage);
+      formData.append("transmissionType", data.transmissionType);
+      formData.append("price", data.price);
+      formData.append("fuelType", data.fuelType);
+      formData.append("year", data.year);
+      formData.append("brand", data.brand);
+      formData.append("sellerComments", data.sellerComments || "");
+      formData.append("visible", "true"); // Default to visible
       
-      // Add images if any
+      // Handle extras as JSON string (backend expects this format)
+      const extrasArray = data.extras ? data.extras.split(',').map(s => s.trim()).filter(s => s) : [];
+      formData.append("extras", JSON.stringify(extrasArray));
+      
+      // Handle vehicleDetails object as JSON string (backend expects this format)
+      const vehicleDetails = {
+        previousOwners: parseInt(data.previousOwners) || 0,
+        serviceHistory: data.serviceHistory || "",
+        colour: data.colour || "",
+        bodyType: data.bodyType || "",
+        warranty: data.warranty || ""
+      };
+      formData.append("vehicleDetails", JSON.stringify(vehicleDetails));
+      
+      // Add images if any (these will be processed to create imagePublicIds)
       if (showImageUpload && selectedImages.length > 0) {
         selectedImages.forEach(image => {
           formData.append('file', image);
