@@ -362,8 +362,6 @@ export default function EditCarPage() {
     const fetchCar = async () => {
       try {
         const data = await authFetcher(`/vehicles/${id}`);
-        console.log(data);
-        
         setCar(data);
       } catch (err) {
         setError("Failed to load vehicle data");
