@@ -19,6 +19,8 @@ export default function EditCarPage() {
   const [pendingImages, setPendingImages] = useState([]);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [hasUploadedImages, setHasUploadedImages] = useState(false);
+  const [isDeletionMode, setIsDeletionMode] = useState(false);
+  const [imagesToDelete, setImagesToDelete] = useState([]);
   const dragIndexRef = useRef(null);
 
   const authPut = useAuthPut();
@@ -31,6 +33,56 @@ export default function EditCarPage() {
       setAllImages(allUrls);
     }
   }, [car]);
+
+  const handleImageDeletion = async () => {
+    if (!car?._id || imagesToDelete.length === 0) {
+      toast.error("Please select images to delete");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      
+      // Get the public IDs for the selected images
+      const originalUrls = car.allImageUrls || [];
+      const publicIds = car.imagePublicIds || [];
+      
+      const publicIdsToDelete = imagesToDelete.map(imgUrl => {
+        const urlIndex = originalUrls.findIndex(url => url === imgUrl);
+        return urlIndex !== -1 ? publicIds[urlIndex] : null;
+      }).filter(id => id !== null);
+
+      if (publicIdsToDelete.length === 0) {
+        toast.error("No valid images selected for deletion");
+        return;
+      }
+
+      // Send deletion request to the server
+      const response = await authPut(`/vehicles/edit/${id}`, {
+        imagesToDelete: publicIdsToDelete
+      });
+
+      if (response && response.data) {
+        setCar(response.data);
+        setImagesToDelete([]);
+        setIsDeletionMode(false);
+        toast.success(`${publicIdsToDelete.length} image(s) deleted successfully!`);
+      }
+    } catch (error) {
+      console.error("Error deleting images:", error);
+      toast.error("Failed to delete images. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const toggleImageSelection = (imgUrl) => {
+    if (imagesToDelete.includes(imgUrl)) {
+      setImagesToDelete(imagesToDelete.filter(url => url !== imgUrl));
+    } else {
+      setImagesToDelete([...imagesToDelete, imgUrl]);
+    }
+  };
 
   const handleImageShuffleSave = async () => {
     if (!car?._id || !car?.imagePublicIds) return;
@@ -310,6 +362,8 @@ export default function EditCarPage() {
     const fetchCar = async () => {
       try {
         const data = await authFetcher(`/vehicles/${id}`);
+        console.log(data);
+        
         setCar(data);
       } catch (err) {
         setError("Failed to load vehicle data");
@@ -576,47 +630,130 @@ export default function EditCarPage() {
 
           {/* Image Order (Click to select, use buttons to move) */}
           <div className="mt-6">
-            <label className="block text-gray-700 font-semibold mb-2">
-              Image Order
-            </label>
-            <p className="text-xs text-gray-500 mb-3">
-              Drag and drop to reorder, then save.
-            </p>
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <label className="block text-gray-700 font-semibold mb-2">
+                  {isDeletionMode ? "Delete Images" : "Image Order"}
+                </label>
+                <p className="text-xs text-gray-500">
+                  {isDeletionMode 
+                    ? "Click images to select for deletion, then delete selected."
+                    : "Drag and drop to reorder, then save."}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsDeletionMode(!isDeletionMode);
+                    setImagesToDelete([]);
+                    setSelectedIndex(null);
+                  }}
+                  className={`px-4 py-2 rounded-lg font-medium transition ${
+                    isDeletionMode
+                      ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      : "bg-red-100 text-red-700 hover:bg-red-200"
+                  }`}
+                >
+                  {isDeletionMode ? "Cancel Delete" : "Delete Images"}
+                </button>
+              </div>
+            </div>
+            
+            {isDeletionMode && imagesToDelete.length > 0 && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-800 text-sm font-medium">
+                  {imagesToDelete.length} image(s) selected for deletion
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setImagesToDelete([])}
+                  className="text-red-600 hover:text-red-800 text-sm mt-1"
+                >
+                  Clear selection
+                </button>
+              </div>
+            )}
+            
             <div className="flex flex-wrap gap-4">
               {allImages.map((imgUrl, i) => (
                 <div
                   key={`${imgUrl}-${i}`}
-                  className={`relative group rounded-lg border ${
-                    i === selectedIndex
+                  className={`relative group rounded-lg border transition ${
+                    isDeletionMode
+                      ? imagesToDelete.includes(imgUrl)
+                        ? "border-red-500 ring-2 ring-red-200 bg-red-50"
+                        : "border-gray-300 hover:border-red-300"
+                      : i === selectedIndex
                       ? "border-blue-500 ring-2 ring-blue-200"
                       : "border-gray-300"
                   }`}
-                  draggable
-                  onDragStart={() => handleDragStart(i)}
-                  onDragOver={handleDragOver}
-                  onDrop={() => handleDrop(i)}
-                  onClick={() => setSelectedIndex(i)}
-                  title="Drag to reorder"
+                  draggable={!isDeletionMode}
+                  onDragStart={!isDeletionMode ? () => handleDragStart(i) : undefined}
+                  onDragOver={!isDeletionMode ? handleDragOver : undefined}
+                  onDrop={!isDeletionMode ? () => handleDrop(i) : undefined}
+                  onClick={() => {
+                    if (isDeletionMode) {
+                      toggleImageSelection(imgUrl);
+                    } else {
+                      setSelectedIndex(i);
+                    }
+                  }}
+                  title={isDeletionMode ? "Click to select for deletion" : "Drag to reorder"}
                 >
                   <img
                     src={imgUrl}
                     alt={`Image ${i + 1}`}
-                    className="w-24 h-24 object-cover rounded-lg select-none cursor-move"
+                    className={`w-24 h-24 object-cover rounded-lg select-none ${
+                      isDeletionMode ? "cursor-pointer" : "cursor-move"
+                    } ${imagesToDelete.includes(imgUrl) ? "opacity-60" : ""}`}
                   />
-                  <span className="absolute top-1 left-1 text-[10px] px-1.5 py-0.5 rounded bg-black/70 text-white">
-                    {i + 1}
+                  <span className={`absolute top-1 left-1 text-[10px] px-1.5 py-0.5 rounded text-white ${
+                    isDeletionMode && imagesToDelete.includes(imgUrl) 
+                      ? "bg-red-600" 
+                      : "bg-black/70"
+                  }`}>
+                    {isDeletionMode && imagesToDelete.includes(imgUrl) ? "✓" : i + 1}
                   </span>
+                  {isDeletionMode && (
+                    <div className={`absolute inset-0 rounded-lg flex items-center justify-center ${
+                      imagesToDelete.includes(imgUrl) 
+                        ? "bg-red-500/20" 
+                        : "bg-transparent group-hover:bg-red-500/10"
+                    }`}>
+                      {imagesToDelete.includes(imgUrl) && (
+                        <svg className="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
             <div className="mt-6 flex items-center justify-center">
-              <button
-                type="button"
-                onClick={handleImageShuffleSave}
-                className="px-5 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-400 transition font-semibold"
-              >
-                Save Image Order
-              </button>
+              {isDeletionMode ? (
+                <button
+                  type="button"
+                  onClick={handleImageDeletion}
+                  disabled={imagesToDelete.length === 0 || isSubmitting}
+                  className={`px-5 py-2 rounded-lg shadow-md font-semibold transition ${
+                    imagesToDelete.length === 0 || isSubmitting
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-400"
+                  }`}
+                >
+                  {isSubmitting ? "Deleting..." : `Delete ${imagesToDelete.length} Selected Image(s)`}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleImageShuffleSave}
+                  className="px-5 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-400 transition font-semibold"
+                >
+                  Save Image Order
+                </button>
+              )}
             </div>
           </div>
         </div>
